@@ -204,7 +204,7 @@ public class Main_Frame extends JFrame {
         // Update the user in all panels that need it
         if (profilePanel != null) profilePanel.setCurrentUser(user);
         if (electricityPanel != null) electricityPanel.setCurrentUser(user);
-        //if (waterPanel != null) waterPanel.setCurrentUser(user);
+        if (waterPanel != null) waterPanel.setCurrentUser(user);
         
         // Update other panels similarly if they need user information
     }

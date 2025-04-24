@@ -24,7 +24,6 @@ public class Water_Panel implements Utility_Panel {
     private List<Account> waterAccounts;
     private List<Bill> waterBills;
     private User currentUser;
-    private Chart_Panel chartPanel;
     
     // Database managers
     private Database_Manager dbManager;
@@ -164,19 +163,6 @@ public class Water_Panel implements Utility_Panel {
         rightPanel.setBackground(Color.WHITE);
         rightPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Histogram Panel
-        JPanel histogramPanel = new JPanel(new BorderLayout(0, 10));
-        histogramPanel.setBackground(Color.WHITE);
-
-        JLabel histogramLabel = new JLabel("Consumption Overview");
-        histogramLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        histogramPanel.add(histogramLabel, BorderLayout.NORTH);
-        
-        // Placeholder for histogram
-        chartPanel = new Chart_Panel("water");
-        chartPanel.setPreferredSize(new Dimension(0, 250));
-        histogramPanel.add(chartPanel, BorderLayout.CENTER);
-        
         // Stats Panel
         JPanel statsPanel = new JPanel(new GridLayout(1, 2, 20, 0));
         statsPanel.setBackground(Color.WHITE);
@@ -231,8 +217,7 @@ public class Water_Panel implements Utility_Panel {
         statsPanel.add(totalsPanel);
         statsPanel.add(consumptionPanel);
         
-        // Combine panels on right side
-        rightPanel.add(histogramPanel, BorderLayout.NORTH);
+        // Add stats panel directly to right panel (no histogram)
         rightPanel.add(statsPanel, BorderLayout.CENTER);
         
         // Add both sides to the content panel
@@ -294,11 +279,6 @@ public class Water_Panel implements Utility_Panel {
                         status
                     };
                     historyTableModel.addRow(row);
-                }
-                
-                if (chartPanel != null && waterBills != null) {
-                    // Make sure to pass a copy of the list to avoid external modification
-                    chartPanel.updateData(new ArrayList<>(waterBills));
                 }
                 
                 // Calculate and update statistics
