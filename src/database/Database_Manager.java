@@ -106,9 +106,9 @@ public class Database_Manager {
                     + "user_id INTEGER NOT NULL, "
                     + "chore_name TEXT NOT NULL, "
                     + "description TEXT, "
-                    + "due_date DATE, "
-                    + "completion_date DATE, "
-                    + "completed BOOLEAN DEFAULT 0, "
+                    + "due_date TEXT, "
+                    + "completion_date TEXT, "
+                    + "completed INTEGER NOT NULL, "
                     + "frequency TEXT, "
                     + "assigned_to TEXT, "
                     + "priority INTEGER)");
@@ -117,6 +117,7 @@ public class Database_Manager {
             e.printStackTrace();
         }
     }
+
 
     // Getters for specialized managers
     public User_Manager getUserManager() {

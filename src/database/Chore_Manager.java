@@ -74,9 +74,9 @@ public class Chore_Manager {
         
         return null;
     }
-
+    
     // Get all chores for a specific user
-    public List<Chore> getChoresByUserId(int userId) throws SQLException {
+    public List<Chore> getChoresByUserId(Integer userId) throws SQLException {
         List<Chore> chores = new ArrayList<>();
         String sql = "SELECT * FROM chores WHERE user_id = ? ORDER BY due_date ASC";
         

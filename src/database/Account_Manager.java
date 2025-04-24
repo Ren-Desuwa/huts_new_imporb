@@ -26,10 +26,10 @@ public class Account_Manager {
         }
     }
 
-    public Account getAccountById(String id) throws SQLException {
+    public Account getAccountById(int id) throws SQLException {
         String sql = "SELECT * FROM accounts WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Account(

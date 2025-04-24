@@ -272,7 +272,11 @@ public class Chore_Panel implements Utility_Panel {
         if (currentUser != null) {
             try {
                 // Get all chores for the current user
-                chores = dbManager.getChoreManager().getChoresByUserId(currentUser.getId());
+                // Convert String user ID to Integer if needed
+                Integer userId = currentUser.getId();
+                chores = dbManager.getChoreManager().getChoresByUserId(userId);
+                
+                // Rest of the method remains the same...
                 
                 // Populate the table with chore data
                 for (Chore chore : chores) {
@@ -341,23 +345,22 @@ public class Chore_Panel implements Utility_Panel {
                 dueDate = LocalDate.parse(dueDateStr);
             }
             
-            // Create and save the new chore
             Chore newChore = new Chore(
-                currentUser.getId(),
-                choreName,
-                description,
-                dueDate,
-                false, // not completed yet
-                frequency,
-                assignedTo,
-                priority
-            );
+            	    currentUser.getId(),  // Convert to Integer
+            	    choreName,
+            	    description,
+            	    dueDate,
+            	    false, // not completed yet
+            	    frequency,
+            	    assignedTo,
+            	    priority
+            	);
             
             dbManager.getChoreManager().createChore(newChore);
             
             // Clear form fields
             choreNameField.setText("");
-            descriptionField.setText("");	
+            descriptionField.setText("");		
             dueDateField.setText(LocalDate.now().toString());
             frequencyComboBox.setSelectedIndex(0);
             assignedToField.setText("");
