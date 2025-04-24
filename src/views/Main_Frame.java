@@ -3,11 +3,6 @@ package views;
 import models.*;
 import javax.swing.*;
 import database.*;
-import ignoreme.Electricity_Manager;
-import ignoreme.Gas_Manager;
-import ignoreme.Gas_Panel;
-import ignoreme.Subscription_Manager;
-import ignoreme.Water_Manager;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -34,10 +29,7 @@ public class Main_Frame extends JFrame {
     private Sign_Up_Panel signUpPanel;
     private Welcome_Panel welcomePanel;
     private Electricity_Panel electricityPanel;
-    private Gas_Panel gasPanel;
     private Water_Panel waterPanel;
-    private Subscription_Panel subscriptionPanel;
-    private Summary_Panel summaryPanel;
     
     // Constants for panel names
     private static final String MAIN_CONTENT_PANEL = "MAIN_CONTENT_PANEL";
@@ -46,9 +38,7 @@ public class Main_Frame extends JFrame {
     private static final String SIGNUP_PANEL = "signup";
     private static final String WELCOME_PANEL = "welcome";
     private static final String ELECTRICITY_PANEL = "electricity";
-    private static final String GAS_PANEL = "gas";
     private static final String WATER_PANEL = "water";
-    private static final String SUBSCRIPTION_PANEL = "subscription";
     
     // Size constants
     private static final Dimension AUTH_PANEL_SIZE = new Dimension(600, 400);
@@ -56,23 +46,10 @@ public class Main_Frame extends JFrame {
     
     // Database manager instance
     private Database_Manager dbManager;
-    private User_Manager userManager;
-    private Subscription_Manager subscriptionManager;
-    private Electricity_Manager electricityManager;
-    private Gas_Manager gasManager;
-    private Water_Manager waterManager;
-    
     
     public Main_Frame() {
         // Initialize database manager
         dbManager = Database_Manager.getInstance();
-        
-        // Initialize various managers
-        userManager = new User_Manager(dbManager.getConnection());
-        subscriptionManager = new Subscription_Manager(dbManager.getConnection());
-        electricityManager = new Electricity_Manager(dbManager.getConnection());
-        gasManager = new Gas_Manager(dbManager.getConnection());
-        waterManager = new Water_Manager(dbManager.getConnection());
         
         // Set up window properties
         setTitle("Home Utility Tracking System");
@@ -98,9 +75,9 @@ public class Main_Frame extends JFrame {
     
     private void initPanels() {
         // Create authentication panels
-        loginPanel = new Login_Panel(this, userManager);
-        signUpPanel = new Sign_Up_Panel(this, userManager);
-        forgotPasswordPanel = new Forgot_Password_Panel(this, userManager);
+        loginPanel = new Login_Panel(this, dbManager.getUserManager());
+        signUpPanel = new Sign_Up_Panel(this, dbManager.getUserManager());
+        forgotPasswordPanel = new Forgot_Password_Panel(this, dbManager.getUserManager());
         
         // Initialize main content panel components
         initMainContentPanel();
@@ -131,19 +108,15 @@ public class Main_Frame extends JFrame {
         
         // Initialize utility panels - pass the current user (initially null)
         welcomePanel = new Welcome_Panel(this, dbManager);
-        electricityPanel = new Electricity_Panel(this, previousElectricityReadings, currentUser);
-        gasPanel = new Gas_Panel(this, previousGasReadings);
-        waterPanel = new Water_Panel(this, previousWaterReadings);
-        subscriptionPanel = new Subscription_Panel(this);
-        summaryPanel = new Summary_Panel(this, electricityPanel, gasPanel, waterPanel, subscriptionPanel);
+        electricityPanel = new Electricity_Panel(this, currentUser);
+        waterPanel = new Water_Panel(this, dbManager);
+
         
         // Add panels to content area
         contentArea.add(welcomePanel.getPanel(), "WELCOME");
         contentArea.add(electricityPanel.getPanel(), "ELECTRICITY");
-        contentArea.add(gasPanel.getPanel(), "GAS");
         contentArea.add(waterPanel.getPanel(), "WATER");
-        contentArea.add(subscriptionPanel.getPanel(), "SUBSCRIPTION");
-        contentArea.add(summaryPanel.getPanel(), "SUMMARY");
+
         
         // Add components to main panel
         mainPanel.add(menuPanel, BorderLayout.WEST);
@@ -162,15 +135,12 @@ public class Main_Frame extends JFrame {
         // Add action listeners
         dashboardBtn.addActionListener(e -> showWelcomePanel());
         electricityBtn.addActionListener(e -> showElectricityPanel());
-        gasBtn.addActionListener(e -> showGasPanel());
         waterBtn.addActionListener(e -> showWaterPanel());
-        subscriptionsBtn.addActionListener(e -> showSubscriptionsPanel());
-        summaryBtn.addActionListener(e -> showSummaryPanel());
         logoutBtn.addActionListener(e -> logout());
         
         // Add buttons to menu panel
         menuPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        menuPanel.add(createTitleLabel("HUMS"));
+        menuPanel.add(createTitleLabel("HUTS"));
         menuPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         menuPanel.add(dashboardBtn);
         menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -244,12 +214,7 @@ public class Main_Frame extends JFrame {
         electricityPanel.refreshPanel();
         cardLayout.show((JPanel) mainPanel.getComponent(1), "ELECTRICITY");
     }
-    
-    private void showGasPanel() {
-        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
-        gasPanel.refreshPanel();
-        cardLayout.show((JPanel) mainPanel.getComponent(1), "GAS");
-    }
+
     
     private void showWaterPanel() {
         CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
@@ -257,21 +222,25 @@ public class Main_Frame extends JFrame {
         cardLayout.show((JPanel) mainPanel.getComponent(1), "WATER");
     }
     
-    private void showSubscriptionsPanel() {
-        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
-        subscriptionPanel.refreshPanel();
-        cardLayout.show((JPanel) mainPanel.getComponent(1), "SUBSCRIPTION");
-    }
-    
-    private void showSummaryPanel() {
-        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
-        summaryPanel.refreshPanel();
-        cardLayout.show((JPanel) mainPanel.getComponent(1), "SUMMARY");
-    }
-    
     // Accessor methods that might be needed by panels
     public Database_Manager getDbManager() {
         return dbManager;
+    }
+    
+    public User_Manager getUserManager() {
+        return dbManager.getUserManager();
+    }
+    
+    public Account_Manager getAccountManager() {
+        return dbManager.getAccountManager();
+    }
+    
+    public Bill_Manager getBillManager() {
+        return dbManager.getBillManager();
+    }
+    
+    public Reading_History_Manager getReadingHistoryManager() {
+        return dbManager.getReadingHistoryManager();
     }
     
     public void showLoginPanel() {
@@ -372,14 +341,8 @@ public class Main_Frame extends JFrame {
                 case ELECTRICITY_PANEL:
                     cardLayout.show(contentArea, "ELECTRICITY");
                     break;
-                case GAS_PANEL:
-                    cardLayout.show(contentArea, "GAS");
-                    break;
                 case WATER_PANEL:
                     cardLayout.show(contentArea, "WATER");
-                    break;
-                case SUBSCRIPTION_PANEL:
-                    cardLayout.show(contentArea, "SUBSCRIPTION");
                     break;
                 default:
                     System.out.println("Invalid panel name: " + panelName);
@@ -405,14 +368,8 @@ public class Main_Frame extends JFrame {
             case ELECTRICITY_PANEL:
                 electricityPanel.refreshPanel();
                 break;
-            case GAS_PANEL:
-                gasPanel.refreshPanel();
-                break;
             case WATER_PANEL:
                 waterPanel.refreshPanel();
-                break;
-            case SUBSCRIPTION_PANEL:
-                subscriptionPanel.refreshPanel();
                 break;
         }
     }
@@ -425,13 +382,11 @@ public class Main_Frame extends JFrame {
         // Call refresh on other panels if they have it
         if (welcomePanel != null) welcomePanel.refreshPanel();
         if (electricityPanel != null) electricityPanel.refreshPanel();
-        if (gasPanel != null) gasPanel.refreshPanel();
         if (waterPanel != null) waterPanel.refreshPanel();
-        if (subscriptionPanel != null) subscriptionPanel.refreshPanel();
     }
     
     // Getter for current user
-    public User getCurrentUser() {	
+    public User getCurrentUser() {    
         return currentUser;
     }
 }

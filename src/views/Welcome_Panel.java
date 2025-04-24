@@ -3,28 +3,16 @@ package views;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
+import java.time.LocalDate;
+
 import models.*;
 import database.*;
-import ignoreme.Electricity;
-import ignoreme.Electricity_Manager;
-import ignoreme.Gas;
-import ignoreme.Gas_Manager;
-import ignoreme.Subscription;
-import ignoreme.Subscription_Manager;
-import ignoreme.Water;
-import ignoreme.Water_Manager;
 
 public class Welcome_Panel extends JPanel implements Utility_Panel {
-    private Connection connection;
-    private static final String DB_URL = "jdbc:sqlite:data/huts.db";
+    private Database_Manager dbManager;
     private Main_Frame parentFrame;
-    private Water_Manager waterManager;
-    private Gas_Manager gasManager;
-    private Electricity_Manager electricityManager;
-    private Subscription_Manager subscriptionManager;
     
     // UI Components
     private JLabel welcomeLabel;
@@ -34,34 +22,22 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
     private JPanel contentPanel;
     
     public Welcome_Panel(Main_Frame parentFrame, Database_Manager dbManager) {
-        try {
-            this.connection = DriverManager.getConnection(DB_URL);
-            this.parentFrame = parentFrame;
-            
-            // Initialize managers
-            this.waterManager = new Water_Manager(connection);
-            this.gasManager = new Gas_Manager(connection);
-            this.electricityManager = new Electricity_Manager(connection);
-            this.subscriptionManager = new Subscription_Manager(connection);
-            
-            // Initialize the panel with white background
-            setBackground(Color.WHITE);
-            setLayout(new BorderLayout());
-            
-            initComponents();
-            
-            // Add component listener for responsiveness
-            addComponentListener(new ComponentAdapter() {
-                @Override
-                public void componentResized(ComponentEvent e) {
-                    resizeComponents();
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error connecting to database: " + e.getMessage(),
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
-        }
+        this.parentFrame = parentFrame;
+        this.dbManager = dbManager;
+        
+        // Initialize the panel with white background
+        setBackground(Color.WHITE);
+        setLayout(new BorderLayout());
+        
+        initComponents();
+        
+        // Add component listener for responsiveness
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                resizeComponents();
+            }
+        });
     }
     
     @Override
@@ -156,17 +132,17 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
             // Clear existing stats
             statsPanel.removeAll();
             
-            // Get data from database
-            List<Electricity> electricityAccounts = electricityManager.getAllElectricity();
-            List<Gas> gasAccounts = gasManager.getAllGas();
-            List<Water> waterAccounts = waterManager.getAllWater();
-            List<Subscription> subscriptions = subscriptionManager.getAllSubscriptions();
+            // Get account counts by type from the database
+            int electricityCount = getAccountCountByType("electricity");
+            int gasCount = getAccountCountByType("gas");
+            int waterCount = getAccountCountByType("water");
+            int subscriptionCount = getAccountCountByType("subscription");
             
             // Add stat panels with matching style to Forgot Password panel
-            statsPanel.add(createStatPanel("Electricity Accounts", electricityAccounts.size(), new Color(52, 152, 219)));
-            statsPanel.add(createStatPanel("Gas Accounts", gasAccounts.size(), new Color(155, 89, 182)));
-            statsPanel.add(createStatPanel("Water Accounts", waterAccounts.size(), new Color(46, 204, 113)));
-            statsPanel.add(createStatPanel("Active Subscriptions", subscriptions.size(), new Color(226, 149, 90)));
+            statsPanel.add(createStatPanel("Electricity Accounts", electricityCount, new Color(52, 152, 219)));
+            statsPanel.add(createStatPanel("Gas Accounts", gasCount, new Color(155, 89, 182)));
+            statsPanel.add(createStatPanel("Water Accounts", waterCount, new Color(46, 204, 113)));
+            statsPanel.add(createStatPanel("Active Subscriptions", subscriptionCount, new Color(226, 149, 90)));
             
             // Resize components to fit current panel size
             resizeComponents();
@@ -182,6 +158,24 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error loading data: " + e.getMessage(),
                     "Data Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private int getAccountCountByType(String accountType) {
+        try {
+            // Get the current user ID from the parent frame (assuming it stores current user)
+            String userId = parentFrame.getCurrentUser().getId();
+            
+            // Get accounts for the current user
+            List<Account> accounts = dbManager.getAccountManager().getAccountsByUserId(userId);
+            
+            // Count accounts of the specified type
+            return (int) accounts.stream()
+                .filter(account -> account.getType().equalsIgnoreCase(accountType))
+                .count();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
         }
     }
     

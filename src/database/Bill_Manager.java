@@ -6,7 +6,7 @@ import java.util.*;
 
 import models.Bill;
 
-class Bill_Manager {
+public class Bill_Manager {
     private final Connection conn;
 
     public Bill_Manager(Connection conn) {
