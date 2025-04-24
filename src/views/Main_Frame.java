@@ -120,11 +120,13 @@ public class Main_Frame extends JFrame {
         welcomePanel = new Welcome_Panel(this, dbManager);
         electricityPanel = new Electricity_Panel(this, currentUser);
         waterPanel = new Water_Panel(this, dbManager);
+        profilePanel = new Profile_Panel(this); // Initialize the profile panel
         
         // Add panels to content area
         contentArea.add(welcomePanel.getPanel(), "WELCOME");
         contentArea.add(electricityPanel.getPanel(), "ELECTRICITY");
         contentArea.add(waterPanel.getPanel(), "WATER");
+        contentArea.add(profilePanel.getPanel(), "PROFILE"); // Add profile panel to content area
         
         // Add components to main panel
         mainPanel.add(menuPanel, BorderLayout.WEST);
