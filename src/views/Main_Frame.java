@@ -106,16 +106,11 @@ public class Main_Frame extends JFrame {
         JPanel contentArea = new JPanel(new CardLayout());
         contentArea.setBackground(Color.WHITE);
         
-        // Initialize utility panels - pass the current user (initially null)
-        welcomePanel = new Welcome_Panel(this, dbManager);
-        electricityPanel = new Electricity_Panel(this, currentUser);
-        waterPanel = new Water_Panel(this, dbManager);
-
+        
+     // Initialize content panels
+        
         
         // Add panels to content area
-        contentArea.add(welcomePanel.getPanel(), "WELCOME");
-        contentArea.add(electricityPanel.getPanel(), "ELECTRICITY");
-        contentArea.add(waterPanel.getPanel(), "WATER");
 
         
         // Add components to main panel
