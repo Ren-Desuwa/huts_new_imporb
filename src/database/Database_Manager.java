@@ -7,7 +7,7 @@ import java.util.UUID;
 
 /**
  * Core Database Manager that initializes the connection and delegates operations
- * to specialized managers for users, accounts, bills, and reading history.
+ * to specialized managers for users, accounts, bills, reading history, and chores.
  */
 public class Database_Manager {
     private Connection connection;
@@ -19,7 +19,6 @@ public class Database_Manager {
     private Bill_Manager billManager;
     private Reading_History_Manager readingHistoryManager;
     private Chore_Manager choreManager;
-    
 
     // Singleton pattern
     private static Database_Manager instance;
@@ -55,6 +54,7 @@ public class Database_Manager {
         accountManager = new Account_Manager(connection);
         billManager = new Bill_Manager(connection);
         readingHistoryManager = new Reading_History_Manager(connection);
+        choreManager = new Chore_Manager(connection);
     }
 
     private void createTables() {
@@ -99,6 +99,8 @@ public class Database_Manager {
                     + "reading_date TEXT, "
                     + "reading_value REAL, "
                     + "FOREIGN KEY(account_id) REFERENCES accounts(id))");
+
+            // Note: The Chores table is created by the Chore_Manager
 
         } catch (SQLException e) {
             e.printStackTrace();

@@ -11,32 +11,10 @@ public class Chore_Manager {
 
     public Chore_Manager(Connection connection) {
         this.connection = connection;
-        createTableIfNotExists();
     }
 
     // Create the chores table if it doesn't exist
-    private void createTableIfNotExists() {
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS chores (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "user_id INTEGER NOT NULL," +
-                "chore_name TEXT NOT NULL," +
-                "description TEXT," +
-                "due_date DATE," +
-                "completion_date DATE," +
-                "completed BOOLEAN NOT NULL DEFAULT 0," +
-                "frequency TEXT," +
-                "assigned_to TEXT," +
-                "priority INTEGER," +
-                "FOREIGN KEY (user_id) REFERENCES users(id)" +
-                ");";
-        
-        try (Statement stmt = connection.createStatement()) {
-            stmt.execute(createTableSQL);
-        } catch (SQLException e) {
-            System.err.println("Error creating chores table: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    
 
     // Create a new chore
     public Chore createChore(Chore chore) throws SQLException {
