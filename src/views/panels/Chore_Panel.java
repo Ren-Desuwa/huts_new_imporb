@@ -357,7 +357,7 @@ public class Chore_Panel implements Utility_Panel {
             
             // Clear form fields
             choreNameField.setText("");
-            descriptionField.setText("");
+            descriptionField.setText("");	
             dueDateField.setText(LocalDate.now().toString());
             frequencyComboBox.setSelectedIndex(0);
             assignedToField.setText("");

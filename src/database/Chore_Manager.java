@@ -13,9 +13,6 @@ public class Chore_Manager {
         this.connection = connection;
     }
 
-    // Create the chores table if it doesn't exist
-    
-
     // Create a new chore
     public Chore createChore(Chore chore) throws SQLException {
         String sql = "INSERT INTO chores (user_id, chore_name, description, due_date, completion_date, " +
@@ -79,12 +76,12 @@ public class Chore_Manager {
     }
 
     // Get all chores for a specific user
-    public List<Chore> getChoresByUserId(String userId) throws SQLException {
+    public List<Chore> getChoresByUserId(int userId) throws SQLException {
         List<Chore> chores = new ArrayList<>();
         String sql = "SELECT * FROM chores WHERE user_id = ? ORDER BY due_date ASC";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, userId);
+            pstmt.setInt(1, userId);
             
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -233,9 +230,9 @@ public class Chore_Manager {
         String frequency = rs.getString("frequency");
         String assignedTo = rs.getString("assigned_to");
         
-        Integer priority = null;
-        if (!rs.wasNull()) {
-            priority = rs.getInt("priority");
+        Integer priority = rs.getInt("priority");
+        if (rs.wasNull()) {
+            priority = null;
         }
         
         return new Chore(id, userId, choreName, description, dueDate, completionDate, 

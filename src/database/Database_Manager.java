@@ -100,7 +100,18 @@ public class Database_Manager {
                     + "reading_value REAL, "
                     + "FOREIGN KEY(account_id) REFERENCES accounts(id))");
 
-            // Note: The Chores table is created by the Chore_Manager
+            // Chores table
+            stmt.execute("CREATE TABLE IF NOT EXISTS chores ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + "user_id INTEGER NOT NULL, "
+                    + "chore_name TEXT NOT NULL, "
+                    + "description TEXT, "
+                    + "due_date DATE, "
+                    + "completion_date DATE, "
+                    + "completed BOOLEAN DEFAULT 0, "
+                    + "frequency TEXT, "
+                    + "assigned_to TEXT, "
+                    + "priority INTEGER)");
 
         } catch (SQLException e) {
             e.printStackTrace();
