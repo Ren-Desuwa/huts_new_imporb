@@ -4,45 +4,70 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public class Bill {
-    private String id; // Changed from UUID to String
-    private String utilityId; // Changed from UUID to String
+    private String id;
+    private String accountId;
+    private double startReading;
+    private double endReading;
+    private double consumption;
     private double amount;
     private LocalDate issueDate;
     private LocalDate dueDate;
     private boolean isPaid;
     private LocalDate paidDate;
-    private double consumption; // usage for the billing period
+    private String notes;
     
-    // Constructor with String IDs
-    public Bill(String id, String utilityId, double amount, double consumption, 
-                LocalDate issueDate, LocalDate dueDate) {
+    // Constructor with all fields
+    public Bill(String id, String accountId, double startReading, double endReading, 
+                double consumption, double amount, LocalDate issueDate, 
+                LocalDate dueDate, boolean isPaid, LocalDate paidDate, String notes) {
         this.id = id;
-        this.utilityId = utilityId;
-        this.amount = amount;
+        this.accountId = accountId;
+        this.startReading = startReading;
+        this.endReading = endReading;
         this.consumption = consumption;
+        this.amount = amount;
         this.issueDate = issueDate;
         this.dueDate = dueDate;
-        this.isPaid = false;
-        this.paidDate = null;
+        this.isPaid = isPaid;
+        this.paidDate = paidDate;
+        this.notes = notes;
     }
     
     // Constructor without ID (for new bills)
-    public Bill(String utilityId, double amount, double consumption, 
-                LocalDate issueDate, LocalDate dueDate) {
-        this.id = UUID.randomUUID().toString(); // Generate a new ID string
-        this.utilityId = utilityId;
+    public Bill(String accountId, double startReading, double endReading, 
+                double amount, LocalDate issueDate, LocalDate dueDate) {
+        this.id = UUID.randomUUID().toString();
+        this.accountId = accountId;
+        this.startReading = startReading;
+        this.endReading = endReading;
+        this.consumption = endReading - startReading;
         this.amount = amount;
-        this.consumption = consumption;
         this.issueDate = issueDate;
         this.dueDate = dueDate;
         this.isPaid = false;
         this.paidDate = null;
+        this.notes = "";
     }
     
     // Getters and setters
     public String getId() { return id; }
     
-    public String getUtilityId() { return utilityId; }
+    public String getAccountId() { return accountId; }
+    
+    public double getStartReading() { return startReading; }
+    public void setStartReading(double startReading) { 
+        this.startReading = startReading; 
+        this.consumption = this.endReading - startReading;
+    }
+    
+    public double getEndReading() { return endReading; }
+    public void setEndReading(double endReading) { 
+        this.endReading = endReading; 
+        this.consumption = endReading - this.startReading;
+    }
+    
+    public double getConsumption() { return consumption; }
+    public void setConsumption(double consumption) { this.consumption = consumption; }
     
     public double getAmount() { return amount; }
     public void setAmount(double amount) { this.amount = amount; }
@@ -66,8 +91,8 @@ public class Bill {
     public LocalDate getPaidDate() { return paidDate; }
     public void setPaidDate(LocalDate paidDate) { this.paidDate = paidDate; }
     
-    public double getConsumption() { return consumption; }
-    public void setConsumption(double consumption) { this.consumption = consumption; }
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
     
     // Mark the bill as paid with the current date
     public void markAsPaid() {

@@ -5,9 +5,6 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import ignoreme.Bill_Manager;
-import ignoreme.Reading_History_Manager;
-
 /**
  * Core Database Manager that initializes the connection and delegates operations
  * to specialized managers for users, accounts, bills, and reading history.
@@ -66,7 +63,7 @@ public class Database_Manager {
                     + "username TEXT UNIQUE, "
                     + "password TEXT, "
                     + "email TEXT, "
-                    + "full_name TEXT");
+                    + "full_name TEXT)");
 
             // Accounts table (linked to users)
             stmt.execute("CREATE TABLE IF NOT EXISTS accounts ("
@@ -76,20 +73,22 @@ public class Database_Manager {
                     + "provider TEXT, "
                     + "account_number TEXT, "
                     + "rate_per_unit REAL, "
-                    + "FOREIGN KEY(user_id) REFERENCES users(id)");
+                    + "FOREIGN KEY(user_id) REFERENCES users(id))");
 
             // Bills table (linked to accounts)
             stmt.execute("CREATE TABLE IF NOT EXISTS bills ("
                     + "id TEXT PRIMARY KEY, "
                     + "account_id TEXT NOT NULL, "
-                    + "amount REAL, "
+                    + "start_reading REAL, "
+                    + "end_reading REAL, "
                     + "consumption REAL, "
+                    + "amount REAL, "
                     + "issue_date TEXT, "
                     + "due_date TEXT, "
                     + "is_paid INTEGER, "
                     + "paid_date TEXT, "
                     + "notes TEXT, "
-                    + "FOREIGN KEY(account_id) REFERENCES accounts(id)");
+                    + "FOREIGN KEY(account_id) REFERENCES accounts(id))");
 
             // Reading history table (linked to accounts)
             stmt.execute("CREATE TABLE IF NOT EXISTS reading_history ("
@@ -97,7 +96,7 @@ public class Database_Manager {
                     + "account_id TEXT NOT NULL, "
                     + "reading_date TEXT, "
                     + "reading_value REAL, "
-                    + "FOREIGN KEY(account_id) REFERENCES accounts(id)");
+                    + "FOREIGN KEY(account_id) REFERENCES accounts(id))");
 
         } catch (SQLException e) {
             e.printStackTrace();
