@@ -18,6 +18,8 @@ public class Database_Manager {
     private Account_Manager accountManager;
     private Bill_Manager billManager;
     private Reading_History_Manager readingHistoryManager;
+    private Chore_Manager choreManager;
+    
 
     // Singleton pattern
     private static Database_Manager instance;
@@ -118,6 +120,10 @@ public class Database_Manager {
 
     public Reading_History_Manager getReadingHistoryManager() {
         return readingHistoryManager;
+    }
+    
+    public Chore_Manager getChoreManager() {
+        return choreManager;
     }
 
     public Connection getConnection() {

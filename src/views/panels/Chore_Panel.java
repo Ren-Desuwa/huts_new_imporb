@@ -415,4 +415,371 @@ public class Chore_Panel implements Utility_Panel {
             for (Chore chore : chores) {
                 boolean shouldInclude = true;
                 
-                if (status.equals("Pending") && chore.
+                if (status.equals("Pending") && chore.isCompleted()) {
+                    shouldInclude = false;
+                } else if (status.equals("Completed") && !chore.isCompleted()) {
+                    shouldInclude = false;
+                }
+                
+                if (shouldInclude) {
+                    String choreStatus = chore.isCompleted() ? "Completed" : "Pending";
+                    String priority = priorityToString(chore.getPriority());
+                    
+                    Object[] row = {
+                        chore.getChoreName(),
+                        chore.getDueDate() != null ? chore.getDueDate().toString() : "",
+                        chore.getAssignedTo(),
+                        priority,
+                        choreStatus,
+                        "Actions"  // This will be rendered as a button
+                    };
+                    choreTableModel.addRow(row);
+                }
+            }
+        }
+    }
+    
+    // Convert priority number to string description
+    private String priorityToString(Integer priority) {
+        if (priority == null) return "Medium";
+        
+        switch (priority) {
+            case 1: return "Highest";
+            case 2: return "High";
+            case 3: return "Medium";
+            case 4: return "Low";
+            case 5: return "Lowest";
+            default: return "Medium";
+        }
+    }
+    
+    // Button renderer for the Actions column
+    private class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+        
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            if (isSelected) {
+                setForeground(table.getSelectionForeground());
+                setBackground(table.getSelectionBackground());
+            } else {
+                setForeground(table.getForeground());
+                setBackground(UIManager.getColor("Button.background"));
+            }
+            setText("Actions ▼");
+            return this;
+        }
+    }
+    
+    // Button editor for the Actions column
+    private class ButtonEditor extends DefaultCellEditor {
+        protected JButton button;
+        private String label;
+        private boolean isPushed;
+        private int row;
+        
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton();
+            button.setOpaque(true);
+            button.addActionListener(e -> fireEditingStopped());
+        }
+        
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            if (isSelected) {
+                button.setForeground(table.getSelectionForeground());
+                button.setBackground(table.getSelectionBackground());
+            } else {
+                button.setForeground(table.getForeground());
+                button.setBackground(table.getBackground());
+            }
+            label = "Actions ▼";
+            button.setText(label);
+            this.row = row;
+            isPushed = true;
+            return button;
+        }
+        
+        @Override
+        public Object getCellEditorValue() {
+            if (isPushed) {
+                // Show popup menu with actions
+                showActionsPopupMenu(row);
+            }
+            isPushed = false;
+            return label;
+        }
+        
+        @Override
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
+        }
+    }
+    
+    // Show actions popup menu for a chore
+    private void showActionsPopupMenu(int row) {
+        if (row < 0 || row >= chores.size()) return;
+        
+        Chore selectedChore = chores.get(row);
+        JPopupMenu popupMenu = new JPopupMenu();
+        
+        // Complete/Reopen option
+        JMenuItem completeItem;
+        if (selectedChore.isCompleted()) {
+            completeItem = new JMenuItem("Mark as Pending");
+            completeItem.addActionListener(e -> reopenChore(selectedChore));
+        } else {
+            completeItem = new JMenuItem("Mark as Completed");
+            completeItem.addActionListener(e -> completeChore(selectedChore));
+        }
+        
+        // Edit option
+        JMenuItem editItem = new JMenuItem("Edit");
+        editItem.addActionListener(e -> editChore(selectedChore));
+        
+        // Delete option
+        JMenuItem deleteItem = new JMenuItem("Delete");
+        deleteItem.addActionListener(e -> deleteChore(selectedChore));
+        
+        // Add items to popup menu
+        popupMenu.add(completeItem);
+        popupMenu.add(editItem);
+        popupMenu.add(deleteItem);
+        
+        // Show the popup
+        Point p = choreTable.getLocationOnScreen();
+        int rowHeight = choreTable.getRowHeight(row);
+        popupMenu.show(null, p.x + choreTable.getWidth() - 100, 
+            p.y + choreTable.getCellRect(row, 0, true).y + rowHeight);
+    }
+    
+    // Mark a chore as completed
+    private void completeChore(Chore chore) {
+        try {
+            dbManager.getChoreManager().markChoreAsCompleted(chore.getId());
+            refreshPanel();
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Chore marked as completed!", 
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Database error: " + ex.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
+    
+    // Reopen a completed chore
+    private void reopenChore(Chore chore) {
+        try {
+            chore.setCompleted(false);
+            chore.setCompletionDate(null);
+            dbManager.getChoreManager().updateChore(chore);
+            refreshPanel();
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Chore reopened!", 
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Database error: " + ex.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
+    
+    // Delete a chore
+    private void deleteChore(Chore chore) {
+        int confirm = JOptionPane.showConfirmDialog(parentFrame, 
+            "Are you sure you want to delete this chore?", 
+            "Confirm Delete", JOptionPane.YES_NO_OPTION);
+            
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                dbManager.getChoreManager().deleteChore(chore.getId());
+                refreshPanel();
+                JOptionPane.showMessageDialog(parentFrame, 
+                    "Chore deleted successfully!", 
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(parentFrame, 
+                    "Database error: " + ex.getMessage(), 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    // Edit a chore
+    private void editChore(Chore chore) {
+        // Create a dialog for editing the chore
+        JDialog editDialog = new JDialog(parentFrame, "Edit Chore", true);
+        editDialog.setLayout(new BorderLayout());
+        editDialog.setSize(400, 450);
+        editDialog.setLocationRelativeTo(parentFrame);
+        
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        // Chore Name field
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        formPanel.add(new JLabel("Chore Name:"), gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        JTextField nameField = new JTextField(chore.getChoreName(), 20);
+        formPanel.add(nameField, gbc);
+        
+        // Description field
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        formPanel.add(new JLabel("Description:"), gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        JTextArea descArea = new JTextArea(chore.getDescription(), 3, 20);
+        descArea.setLineWrap(true);
+        JScrollPane descScroll = new JScrollPane(descArea);
+        formPanel.add(descScroll, gbc);
+        
+        // Due Date field
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        formPanel.add(new JLabel("Due Date:"), gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        JTextField dueDateField = new JTextField(
+            chore.getDueDate() != null ? chore.getDueDate().toString() : "", 20);
+        formPanel.add(dueDateField, gbc);
+        
+        // Frequency field
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        formPanel.add(new JLabel("Frequency:"), gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        String[] frequencies = {"One-time", "Daily", "Weekly", "Monthly"};
+        JComboBox<String> freqCombo = new JComboBox<>(frequencies);
+        if (chore.getFrequency() != null) {
+            for (int i = 0; i < frequencies.length; i++) {
+                if (frequencies[i].equalsIgnoreCase(chore.getFrequency())) {
+                    freqCombo.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        formPanel.add(freqCombo, gbc);
+        
+        // Assigned To field
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        formPanel.add(new JLabel("Assigned To:"), gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        JTextField assignedField = new JTextField(chore.getAssignedTo(), 20);
+        formPanel.add(assignedField, gbc);
+        
+        // Priority field
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        formPanel.add(new JLabel("Priority:"), gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        Integer[] priorities = {1, 2, 3, 4, 5};
+        JComboBox<Integer> priorityCombo = new JComboBox<>(priorities);
+        if (chore.getPriority() != null) {
+            priorityCombo.setSelectedItem(chore.getPriority());
+        } else {
+            priorityCombo.setSelectedIndex(2); // Default to medium (3)
+        }
+        formPanel.add(priorityCombo, gbc);
+        
+        // Completed status
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        formPanel.add(new JLabel("Status:"), gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        JCheckBox completedCheck = new JCheckBox("Completed", chore.isCompleted());
+        formPanel.add(completedCheck, gbc);
+        
+        // Buttons panel
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+        
+        saveButton.addActionListener(e -> {
+            try {
+                // Update chore with new values
+                chore.setChoreName(nameField.getText());
+                chore.setDescription(descArea.getText());
+                
+                String dueDateStr = dueDateField.getText();
+                if (!dueDateStr.isEmpty()) {
+                    chore.setDueDate(LocalDate.parse(dueDateStr));
+                } else {
+                    chore.setDueDate(null);
+                }
+                
+                chore.setFrequency((String) freqCombo.getSelectedItem());
+                chore.setAssignedTo(assignedField.getText());
+                chore.setPriority((Integer) priorityCombo.getSelectedItem());
+                
+                boolean wasCompleted = chore.isCompleted();
+                boolean isNowCompleted = completedCheck.isSelected();
+                
+                chore.setCompleted(isNowCompleted);
+                
+                // If status changed from pending to completed, set completion date
+                if (!wasCompleted && isNowCompleted) {
+                    chore.setCompletionDate(LocalDate.now());
+                } else if (wasCompleted && !isNowCompleted) {
+                    chore.setCompletionDate(null);
+                }
+                
+                // Save changes to database
+                dbManager.getChoreManager().updateChore(chore);
+                
+                // Close dialog and refresh panel
+                editDialog.dispose();
+                refreshPanel();
+                
+                JOptionPane.showMessageDialog(parentFrame, 
+                    "Chore updated successfully!", 
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+            } catch (DateTimeParseException ex) {
+                JOptionPane.showMessageDialog(editDialog, 
+                    "Please enter a valid date in YYYY-MM-DD format.", 
+                    "Input Error", JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(editDialog, 
+                    "Database error: " + ex.getMessage(), 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        });
+        
+        cancelButton.addActionListener(e -> editDialog.dispose());
+        
+        buttonsPanel.add(saveButton);
+        buttonsPanel.add(cancelButton);
+        
+        editDialog.add(formPanel, BorderLayout.CENTER);
+        editDialog.add(buttonsPanel, BorderLayout.SOUTH);
+        editDialog.setVisible(true);
+    }
+}

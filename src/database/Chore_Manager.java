@@ -101,12 +101,12 @@ public class Chore_Manager {
     }
 
     // Get all chores for a specific user
-    public List<Chore> getChoresByUserId(int userId) throws SQLException {
+    public List<Chore> getChoresByUserId(String userId) throws SQLException {
         List<Chore> chores = new ArrayList<>();
         String sql = "SELECT * FROM chores WHERE user_id = ? ORDER BY due_date ASC";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
+            pstmt.setString(1, userId);
             
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
