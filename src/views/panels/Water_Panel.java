@@ -24,6 +24,7 @@ public class Water_Panel implements Utility_Panel {
     private List<Account> waterAccounts;
     private List<Bill> waterBills;
     private User currentUser;
+    private Chart_Panel chartPanel;
     
     // Database managers
     private Database_Manager dbManager;
@@ -172,9 +173,8 @@ public class Water_Panel implements Utility_Panel {
         histogramPanel.add(histogramLabel, BorderLayout.NORTH);
         
         // Placeholder for histogram
-        JPanel chartPanel = new JPanel();
+        chartPanel = new Chart_Panel("water");	
         chartPanel.setPreferredSize(new Dimension(0, 250));
-        chartPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         histogramPanel.add(chartPanel, BorderLayout.CENTER);
         
         // Stats Panel
@@ -305,6 +305,10 @@ public class Water_Panel implements Utility_Panel {
                     if (component instanceof JPanel) {
                         findAndRefreshComboBox((JPanel) component);
                     }
+                }
+                
+                if (chartPanel != null && waterBills != null) {
+                    chartPanel.updateData(waterBills);
                 }
                 
             } catch (SQLException e) {
