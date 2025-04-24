@@ -1,4 +1,4 @@
-package views;
+package views.panels;
 
 import java.awt.*;
 import java.sql.SQLException;
@@ -11,6 +11,7 @@ import database.Database_Manager;
 import models.Account;
 import models.Bill;
 import models.Reading_History;
+import views.Main_Frame;
 
 public class Water_Panel implements Utility_Panel {
     private JPanel waterPanel;
@@ -38,6 +39,17 @@ public class Water_Panel implements Utility_Panel {
     public void refreshPanel() {
         // Clear the panel
         waterPanel.removeAll();
+        
+        // Check if user is logged in
+        if (parentFrame.getCurrentUser() == null) {
+            // Add a message indicating no user is logged in
+            JLabel noUserLabel = new JLabel("Please log in to view water accounts");
+            noUserLabel.setHorizontalAlignment(JLabel.CENTER);
+            waterPanel.add(noUserLabel, BorderLayout.CENTER);
+            waterPanel.revalidate();
+            waterPanel.repaint();
+            return;
+        }
         
         try {
             // Fetch current data - get water accounts for current user

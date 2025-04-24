@@ -1,7 +1,8 @@
-package views;
+package views.logins;
 
 import database.User_Manager;
 import models.User;
+import views.Main_Frame;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

@@ -1,4 +1,4 @@
-package views;
+package views.panels;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,6 +8,7 @@ import java.util.List;
 import java.time.LocalDate;
 
 import models.*;
+import views.Main_Frame;
 import database.*;
 
 public class Welcome_Panel extends JPanel implements Utility_Panel {
@@ -90,9 +91,26 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
         // Add content panel to main panel
         add(contentPanel, BorderLayout.CENTER);
         
-        // Load data
+        // Load data - but don't initialize with full data yet
         resizeComponents();
-        refreshPanel();
+        
+        // Setup initial empty or placeholder panel
+        setupEmptyStatsPanel();
+    }
+    
+    private void setupEmptyStatsPanel() {
+        // Clear existing stats
+        statsPanel.removeAll();
+        
+        // Add empty stat panels or welcome message
+        statsPanel.add(createStatPanel("Electricity Accounts", 0, new Color(52, 152, 219)));
+        statsPanel.add(createStatPanel("Gas Accounts", 0, new Color(155, 89, 182)));
+        statsPanel.add(createStatPanel("Water Accounts", 0, new Color(46, 204, 113)));
+        statsPanel.add(createStatPanel("Active Subscriptions", 0, new Color(226, 149, 90)));
+        
+        // Refresh UI
+        statsPanel.revalidate();
+        statsPanel.repaint();
     }
     
     private void resizeComponents() {
@@ -129,6 +147,12 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
     @Override
     public void refreshPanel() {
         try {
+            // Check if user is logged in
+            if (parentFrame.getCurrentUser() == null) {
+                setupEmptyStatsPanel();
+                return;
+            }
+            
             // Clear existing stats
             statsPanel.removeAll();
             
@@ -163,8 +187,14 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
     
     private int getAccountCountByType(String accountType) {
         try {
-            // Get the current user ID from the parent frame (assuming it stores current user)
-            String userId = parentFrame.getCurrentUser().getId();
+            // Check if current user exists
+            User currentUser = parentFrame.getCurrentUser();
+            if (currentUser == null) {
+                return 0;
+            }
+            
+            // Get the current user ID
+            String userId = currentUser.getId();
             
             // Get accounts for the current user
             List<Account> accounts = dbManager.getAccountManager().getAccountsByUserId(userId);

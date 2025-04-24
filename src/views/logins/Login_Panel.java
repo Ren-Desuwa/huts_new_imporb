@@ -1,6 +1,8 @@
-package views;
+package views.logins;
 
 import models.*;
+import views.Main_Frame;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 

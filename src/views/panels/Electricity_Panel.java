@@ -1,4 +1,4 @@
-package views;
+package views.panels;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.*;
 
 import models.User;
+import views.Main_Frame;
 import models.Account;
 import models.Bill;
 import models.Reading_History;
