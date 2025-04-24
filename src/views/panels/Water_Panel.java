@@ -167,13 +167,13 @@ public class Water_Panel implements Utility_Panel {
         // Histogram Panel
         JPanel histogramPanel = new JPanel(new BorderLayout(0, 10));
         histogramPanel.setBackground(Color.WHITE);
-        
+
         JLabel histogramLabel = new JLabel("Consumption Overview");
         histogramLabel.setFont(new Font("Arial", Font.BOLD, 18));
         histogramPanel.add(histogramLabel, BorderLayout.NORTH);
         
         // Placeholder for histogram
-        chartPanel = new Chart_Panel("water");	
+        chartPanel = new Chart_Panel("water");
         chartPanel.setPreferredSize(new Dimension(0, 250));
         histogramPanel.add(chartPanel, BorderLayout.CENTER);
         
@@ -296,6 +296,11 @@ public class Water_Panel implements Utility_Panel {
                     historyTableModel.addRow(row);
                 }
                 
+                if (chartPanel != null && waterBills != null) {
+                    // Make sure to pass a copy of the list to avoid external modification
+                    chartPanel.updateData(new ArrayList<>(waterBills));
+                }
+                
                 // Calculate and update statistics
                 updateStatistics();
                 
@@ -305,10 +310,6 @@ public class Water_Panel implements Utility_Panel {
                     if (component instanceof JPanel) {
                         findAndRefreshComboBox((JPanel) component);
                     }
-                }
-                
-                if (chartPanel != null && waterBills != null) {
-                    chartPanel.updateData(waterBills);
                 }
                 
             } catch (SQLException e) {

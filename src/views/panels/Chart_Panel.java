@@ -1,6 +1,7 @@
 package views.panels;
 
 import org.knowm.xchart.*;
+import org.knowm.xchart.internal.chartpart.Chart;
 import org.knowm.xchart.style.Styler;
 import org.knowm.xchart.style.colors.XChartSeriesColors;
 import org.knowm.xchart.style.lines.SeriesLines;
@@ -22,6 +23,7 @@ public class Chart_Panel extends JPanel {
     // Data
     private List<Bill> utilityBills;
     private XYChart chart;
+    private JPanel chartContainer;
     
     // Chart configuration
     private final String utilityType;
@@ -70,9 +72,17 @@ public class Chart_Panel extends JPanel {
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
+        // Initialize chartContainer that will hold the XChartPanel
+        chartContainer = new JPanel(new BorderLayout());
+        add(chartContainer, BorderLayout.CENTER);
+        
         // Initialize with empty data
         utilityBills = new ArrayList<>();
         createChart();
+        
+        // Add control buttons
+        JPanel controlPanel = createControlPanel();
+        add(controlPanel, BorderLayout.SOUTH);
     }
     
     /**
@@ -96,9 +106,17 @@ public class Chart_Panel extends JPanel {
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
+        // Initialize chartContainer that will hold the XChartPanel
+        chartContainer = new JPanel(new BorderLayout());
+        add(chartContainer, BorderLayout.CENTER);
+        
         // Initialize with empty data
         utilityBills = new ArrayList<>();
         createChart();
+        
+        // Add control buttons
+        JPanel controlPanel = createControlPanel();
+        add(controlPanel, BorderLayout.SOUTH);
     }
     
     /**
@@ -107,9 +125,12 @@ public class Chart_Panel extends JPanel {
      * @param bills List of bills to display in the chart
      */
     public void updateData(List<Bill> bills) {
-        this.utilityBills = bills;
+        if (bills == null) {
+            this.utilityBills = new ArrayList<>();
+        } else {
+            this.utilityBills = new ArrayList<>(bills);
+        }
         updateChart();
-        repaint();
     }
     
     /**
@@ -126,17 +147,7 @@ public class Chart_Panel extends JPanel {
                 .build();
         
         // Customize Chart
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
-        chart.getStyler().setChartBackgroundColor(Color.WHITE);
-        chart.getStyler().setPlotBackgroundColor(secondaryColor);
-        chart.getStyler().setPlotGridLinesColor(new Color(180, 180, 180));
-        chart.getStyler().setChartFontColor(Color.DARK_GRAY);
-        chart.getStyler().setAxisTickLabelsColor(Color.DARK_GRAY);
-        chart.getStyler().setDatePattern("yyyy-MM");
-        chart.getStyler().setDecimalPattern("#0.0");
-        chart.getStyler().setXAxisLabelRotation(45);
-        chart.getStyler().setToolTipsEnabled(true);
-        chart.getStyler().setLegendVisible(false);
+        customizeChart(chart);
         
         // Add empty data initially
         List<Date> xData = new ArrayList<>();
@@ -148,13 +159,29 @@ public class Chart_Panel extends JPanel {
         series.setMarker(SeriesMarkers.CIRCLE);
         series.setLineWidth(2.5f);
         
-        // Add the chart to the panel
-        JPanel chartPanel = new XChartPanel<>(chart);
-        add(chartPanel, BorderLayout.CENTER);
+        // Add the chart to the container panel
+        refreshChartDisplay();
+    }
+    
+    /**
+     * Apply standard styling to any chart
+     */
+    private void customizeChart(Chart chart) {
+        chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
+        chart.getStyler().setChartBackgroundColor(Color.WHITE);
+        chart.getStyler().setPlotBackgroundColor(secondaryColor);
+        chart.getStyler().setPlotGridLinesColor(new Color(180, 180, 180));
+        chart.getStyler().setChartFontColor(Color.DARK_GRAY);
+        chart.getStyler().setAxisTickLabelsColor(Color.DARK_GRAY);
         
-        // Add control buttons
-        JPanel controlPanel = createControlPanel();
-        add(controlPanel, BorderLayout.SOUTH);
+        if (chart instanceof XYChart) {
+            ((XYChart) chart).getStyler().setDatePattern("yyyy-MM");
+            ((XYChart) chart).getStyler().setXAxisLabelRotation(45);
+        }
+        
+        chart.getStyler().setDecimalPattern("#0.0");
+        chart.getStyler().setToolTipsEnabled(true);
+        chart.getStyler().setLegendVisible(false);
     }
     
     /**
@@ -167,9 +194,11 @@ public class Chart_Panel extends JPanel {
         JButton lineChartBtn = new JButton("Line Chart");
         JButton barChartBtn = new JButton("Monthly View");
         JButton comparisonBtn = new JButton("Year Comparison");
+        JButton costChartBtn = new JButton("Cost View");
         
         lineChartBtn.addActionListener(e -> showTrendLineChart());
         barChartBtn.addActionListener(e -> showMonthlyBarChart());
+        costChartBtn.addActionListener(e -> showCostTrendChart());
         
         // For year comparison, get current and previous year
         int currentYear = LocalDate.now().getYear();
@@ -178,6 +207,7 @@ public class Chart_Panel extends JPanel {
         controlPanel.add(lineChartBtn);
         controlPanel.add(barChartBtn);
         controlPanel.add(comparisonBtn);
+        controlPanel.add(costChartBtn);
         
         return controlPanel;
     }
@@ -187,8 +217,10 @@ public class Chart_Panel extends JPanel {
      */
     private void updateChart() {
         if (utilityBills == null || utilityBills.isEmpty()) {
-            chart.removeSeries("Consumption");
+            // Reset to empty chart
+            chart.getSeriesMap().clear();
             chart.addSeries("Consumption", new ArrayList<>(), new ArrayList<>());
+            refreshChartDisplay();
             return;
         }
         
@@ -211,7 +243,7 @@ public class Chart_Panel extends JPanel {
         }
         
         // Update chart with new data
-        chart.removeSeries("Consumption");
+        chart.getSeriesMap().clear();
         XYSeries series = chart.addSeries("Consumption", dates, consumptions);
         series.setLineColor(primaryColor);
         series.setMarkerColor(primaryColor);
@@ -230,10 +262,17 @@ public class Chart_Panel extends JPanel {
         }
         
         // Refresh the chart panel
-        removeAll();
-        add(new XChartPanel<>(chart), BorderLayout.CENTER);
-        add(createControlPanel(), BorderLayout.SOUTH);
-        revalidate();
+        refreshChartDisplay();
+    }
+
+    /**
+     * Helper method to refresh the chart display
+     */
+    private void refreshChartDisplay() {
+        chartContainer.removeAll();
+        chartContainer.add(new XChartPanel<>(chart), BorderLayout.CENTER);
+        chartContainer.revalidate();
+        chartContainer.repaint();
     }
 
     /**
@@ -274,23 +313,18 @@ public class Chart_Panel extends JPanel {
                 .build();
         
         // Customize chart
-        barChart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
+        customizeChart(barChart);
         barChart.getStyler().setHasAnnotations(true);
-        barChart.getStyler().setChartBackgroundColor(Color.WHITE);
-        barChart.getStyler().setPlotBackgroundColor(secondaryColor);
-        barChart.getStyler().setToolTipsEnabled(true);
         barChart.getStyler().setXAxisLabelRotation(45);
-        barChart.getStyler().setLegendVisible(false);
         barChart.getStyler().setSeriesColors(new Color[]{primaryColor});
         
         barChart.addSeries("Consumption", months, consumptions);
         
         // Replace the current chart with the bar chart
-        removeAll();
-        add(new XChartPanel<>(barChart), BorderLayout.CENTER);
-        add(createControlPanel(), BorderLayout.SOUTH);
-        revalidate();
-        repaint();
+        chartContainer.removeAll();
+        chartContainer.add(new XChartPanel<>(barChart), BorderLayout.CENTER);
+        chartContainer.revalidate();
+        chartContainer.repaint();
     }
     
     /**
@@ -298,8 +332,6 @@ public class Chart_Panel extends JPanel {
      */
     public void showTrendLineChart() {
         updateChart(); // Revert to default line chart
-        revalidate();
-        repaint();
     }
     
     /**
@@ -353,11 +385,9 @@ public class Chart_Panel extends JPanel {
                 .build();
         
         // Customize chart
+        customizeChart(comparisonChart);
         comparisonChart.getStyler().setLegendPosition(Styler.LegendPosition.OutsideE);
-        comparisonChart.getStyler().setXAxisLabelRotation(45);
-        comparisonChart.getStyler().setChartBackgroundColor(Color.WHITE);
-        comparisonChart.getStyler().setPlotBackgroundColor(secondaryColor);
-        comparisonChart.getStyler().setToolTipsEnabled(true);
+        comparisonChart.getStyler().setLegendVisible(true);
         
         // Add month names instead of numbers
         String[] monthNames = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
@@ -369,11 +399,10 @@ public class Chart_Panel extends JPanel {
                       .setFillColor(primaryColor.brighter());
         
         // Replace the current chart with the comparison chart
-        removeAll();
-        add(new XChartPanel<>(comparisonChart), BorderLayout.CENTER);
-        add(createControlPanel(), BorderLayout.SOUTH);
-        revalidate();
-        repaint();
+        chartContainer.removeAll();
+        chartContainer.add(new XChartPanel<>(comparisonChart), BorderLayout.CENTER);
+        chartContainer.revalidate();
+        chartContainer.repaint();
     }
     
     /**
@@ -412,17 +441,8 @@ public class Chart_Panel extends JPanel {
                 .build();
         
         // Customize chart
-        costChart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
-        costChart.getStyler().setChartBackgroundColor(Color.WHITE);
-        costChart.getStyler().setPlotBackgroundColor(secondaryColor);
-        costChart.getStyler().setPlotGridLinesColor(new Color(180, 180, 180));
-        costChart.getStyler().setChartFontColor(Color.DARK_GRAY);
-        costChart.getStyler().setAxisTickLabelsColor(Color.DARK_GRAY);
-        costChart.getStyler().setDatePattern("yyyy-MM");
+        customizeChart(costChart);
         costChart.getStyler().setDecimalPattern("$#0.00");
-        costChart.getStyler().setXAxisLabelRotation(45);
-        costChart.getStyler().setToolTipsEnabled(true);
-        costChart.getStyler().setLegendVisible(false);
         
         XYSeries series = costChart.addSeries("Cost", dates, costs);
         series.setLineColor(new Color(128, 0, 128)); // Purple for cost
@@ -431,11 +451,10 @@ public class Chart_Panel extends JPanel {
         series.setLineWidth(2.5f);
         
         // Replace the current chart with the cost chart
-        removeAll();
-        add(new XChartPanel<>(costChart), BorderLayout.CENTER);
-        add(createControlPanel(), BorderLayout.SOUTH);
-        revalidate();
-        repaint();
+        chartContainer.removeAll();
+        chartContainer.add(new XChartPanel<>(costChart), BorderLayout.CENTER);
+        chartContainer.revalidate();
+        chartContainer.repaint();
     }
     
     /**
