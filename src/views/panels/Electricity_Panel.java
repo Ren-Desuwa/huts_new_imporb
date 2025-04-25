@@ -163,76 +163,74 @@ public class Electricity_Panel implements Utility_Panel {
         rightPanel.setBackground(Color.WHITE);
         rightPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Histogram Panel
-        JPanel histogramPanel = new JPanel(new BorderLayout(0, 10));
-        histogramPanel.setBackground(Color.WHITE);
-        
-        JLabel histogramLabel = new JLabel("Consumption Overview");
-        histogramLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        histogramPanel.add(histogramLabel, BorderLayout.NORTH);
-        
-        // Placeholder for histogram
-        JPanel chartPanel = new JPanel();
-        chartPanel.setPreferredSize(new Dimension(0, 250));
-        chartPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        histogramPanel.add(chartPanel, BorderLayout.CENTER);
-        
-        // Stats Panel
-        JPanel statsPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        // Stats Panel - Now takes the whole right side since histogram is removed
+        JPanel statsPanel = new JPanel(new GridLayout(2, 1, 0, 20));
         statsPanel.setBackground(Color.WHITE);
         
-        // Left stats (totals)
+        // Top stats (totals) - now has more space
         JPanel totalsPanel = new JPanel(new GridBagLayout());
         totalsPanel.setBackground(new Color(255, 235, 180)); // Same yellow background
+        totalsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Annual Summary"));
         GridBagConstraints statsGbc = new GridBagConstraints();
         statsGbc.fill = GridBagConstraints.HORIZONTAL;
         statsGbc.anchor = GridBagConstraints.WEST;
-        statsGbc.insets = new Insets(5, 5, 5, 5);
+        statsGbc.insets = new Insets(15, 15, 15, 15);
         
-        // Total Spent
+        // Total Spent - Made more prominent
         JLabel totalLabel = new JLabel("Total Spent (This Year)");
+        totalLabel.setFont(new Font("Arial", Font.BOLD, 16));
         statsGbc.gridx = 0;
         statsGbc.gridy = 0;
+        statsGbc.gridwidth = 2;
         totalsPanel.add(totalLabel, statsGbc);
         
         totalSpentField = new JTextField("₱0.00");
         totalSpentField.setEditable(false);
+        totalSpentField.setFont(new Font("Arial", Font.BOLD, 24));
+        totalSpentField.setHorizontalAlignment(JTextField.CENTER);
         statsGbc.gridx = 0;
         statsGbc.gridy = 1;
+        statsGbc.gridwidth = 2;
+        statsGbc.fill = GridBagConstraints.HORIZONTAL;
         totalsPanel.add(totalSpentField, statsGbc);
         
         // Average Monthly Cost
         JLabel avgLabel = new JLabel("Average Monthly Cost");
+        avgLabel.setFont(new Font("Arial", Font.BOLD, 16));
         statsGbc.gridx = 0;
         statsGbc.gridy = 2;
         totalsPanel.add(avgLabel, statsGbc);
         
         avgMonthlyField = new JTextField("₱0.00");
         avgMonthlyField.setEditable(false);
+        avgMonthlyField.setFont(new Font("Arial", Font.BOLD, 24));
+        avgMonthlyField.setHorizontalAlignment(JTextField.CENTER);
         statsGbc.gridx = 0;
         statsGbc.gridy = 3;
         totalsPanel.add(avgMonthlyField, statsGbc);
         
-        // Right stats (usage trend)
+        // Bottom stats (consumption stats) - expanded
         JPanel consumptionPanel = new JPanel(new GridBagLayout());
         consumptionPanel.setBackground(new Color(255, 235, 180)); // Same yellow background
+        consumptionPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Consumption Statistics"));
         GridBagConstraints consumptionGbc = new GridBagConstraints();
         consumptionGbc.fill = GridBagConstraints.HORIZONTAL;
-        consumptionGbc.insets = new Insets(5, 5, 5, 5);
+        consumptionGbc.insets = new Insets(15, 15, 15, 15);
         
         JLabel consumptionLabel = new JLabel("Consumption Stats");
-        consumptionLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        consumptionLabel.setFont(new Font("Arial", Font.BOLD, 16));
         consumptionGbc.gridx = 0;
         consumptionGbc.gridy = 0;
         consumptionGbc.gridwidth = 2;
         consumptionPanel.add(consumptionLabel, consumptionGbc);
         
-        // Add stats panels
+        // More space for additional consumption stats could be added here
+        
+        // Add stats panels to the right panel
         statsPanel.add(totalsPanel);
         statsPanel.add(consumptionPanel);
         
-        // Combine panels on right side
-        rightPanel.add(histogramPanel, BorderLayout.NORTH);
+        // Add stats panel to the right panel
         rightPanel.add(statsPanel, BorderLayout.CENTER);
         
         // Add both sides to the content panel
