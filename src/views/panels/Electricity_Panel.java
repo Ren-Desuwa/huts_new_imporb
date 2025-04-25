@@ -195,7 +195,7 @@ public class Electricity_Panel implements Utility_Panel {
         statsGbc.gridy = 0;
         totalsPanel.add(totalLabel, statsGbc);
         
-        totalSpentField = new JTextField("$0.00");
+        totalSpentField = new JTextField("₱0.00");
         totalSpentField.setEditable(false);
         statsGbc.gridx = 0;
         statsGbc.gridy = 1;
@@ -207,7 +207,7 @@ public class Electricity_Panel implements Utility_Panel {
         statsGbc.gridy = 2;
         totalsPanel.add(avgLabel, statsGbc);
         
-        avgMonthlyField = new JTextField("$0.00");
+        avgMonthlyField = new JTextField("₱0.00");
         avgMonthlyField.setEditable(false);
         statsGbc.gridx = 0;
         statsGbc.gridy = 3;
@@ -287,7 +287,7 @@ public class Electricity_Panel implements Utility_Panel {
                     String status = bill.isPaid() ? "Paid" : "Unpaid";
                     Object[] row = {
                         bill.getIssueDate().toString(),
-                        String.format("$%.2f", bill.getAmount()),
+                        String.format("₱%.2f", bill.getAmount()),
                         String.format("%.2f", bill.getStartReading()),
                         String.format("%.2f", bill.getEndReading()),
                         String.format("%.2f", bill.getConsumption()),
@@ -337,7 +337,9 @@ public class Electricity_Panel implements Utility_Panel {
     
     // Get all electricity accounts for the current user
     private List<Account> getElectricityAccounts() throws SQLException {
-        List<Account> allAccounts = dbManager.getAccountManager().getAccountsByUserId(currentUser.getId());
+        // Convert int to String to match Account model
+        int userId = currentUser.getId();
+        List<Account> allAccounts = dbManager.getAccountManager().getAccountsByUserId(userId);
         List<Account> electricityAccounts = new ArrayList<>();
         
         // Filter for electricity accounts only
@@ -360,7 +362,7 @@ public class Electricity_Panel implements Utility_Panel {
             return;
         }
         
-        if (selectedAccountIndex < 0 || electricityAccounts.size() <= selectedAccountIndex) {
+        if (selectedAccountIndex < 0 || electricityAccounts == null || electricityAccounts.size() <= selectedAccountIndex) {
             JOptionPane.showMessageDialog(parentFrame, 
                 "Please select a valid account.", 
                 "Input Error", JOptionPane.ERROR_MESSAGE);
@@ -384,9 +386,8 @@ public class Electricity_Panel implements Utility_Panel {
             // Get the selected account
             Account selectedAccount = electricityAccounts.get(selectedAccountIndex);
             
-            // Create and save the new reading
+            // Create and save the new reading - using UUID for ID as per Reading_History model
             Reading_History newReading = new Reading_History(
-                null, // ID will be generated
                 selectedAccount.getId(),
                 readingDate,
                 readingValue
@@ -431,7 +432,7 @@ public class Electricity_Panel implements Utility_Panel {
             return;
         }
         
-        if (selectedAccountIndex < 0 || electricityAccounts.size() <= selectedAccountIndex) {
+        if (selectedAccountIndex < 0 || electricityAccounts == null || electricityAccounts.size() <= selectedAccountIndex) {
             JOptionPane.showMessageDialog(parentFrame, 
                 "Please select a valid account.", 
                 "Input Error", JOptionPane.ERROR_MESSAGE);
@@ -503,20 +504,18 @@ public class Electricity_Panel implements Utility_Panel {
                     LocalDate dueDate = LocalDate.parse(dueDateField.getText());
                     String notes = notesField.getText();
                     
-                    // Create a new bill
+                    // Create a new bill using the model constructor for new bills
                     Bill newBill = new Bill(
-                        null, // ID will be generated
                         selectedAccount.getId(),
                         startReading,
                         endReading,
-                        consumption,
                         amount,
                         issueDate,
-                        dueDate,
-                        false, // not paid yet
-                        null, // no paid date
-                        notes
+                        dueDate
                     );
+                    
+                    // Set notes
+                    newBill.setNotes(notes);
                     
                     // Save the bill
                     dbManager.getBillManager().createBill(newBill);
@@ -568,8 +567,8 @@ public class Electricity_Panel implements Utility_Panel {
         }
         
         // Update statistics fields
-        totalSpentField.setText(String.format("$%.2f", totalSpent));
-        avgMonthlyField.setText(String.format("$%.2f", 
+        totalSpentField.setText(String.format("₱%.2f", totalSpent));
+        avgMonthlyField.setText(String.format("₱%.2f", 
             billCount > 0 ? totalSpent / billCount : 0));
     }
     
@@ -600,7 +599,7 @@ public class Electricity_Panel implements Utility_Panel {
         JTextField accountNumberField = new JTextField(20);
         formPanel.add(accountNumberField);
         
-        formPanel.add(new JLabel("Rate per kWh ($):"));
+        formPanel.add(new JLabel("Rate per kWh (₱):"));
         JTextField rateField = new JTextField(20);
         formPanel.add(rateField);
         
@@ -614,7 +613,7 @@ public class Electricity_Panel implements Utility_Panel {
         
         cancelButton.addActionListener(e -> dialog.dispose());
         saveButton.addActionListener(e -> {
-            try {
+        	try {
                 String provider = providerField.getText();
                 String accountNumber = accountNumberField.getText();
                 double rate = Double.parseDouble(rateField.getText());
@@ -629,8 +628,7 @@ public class Electricity_Panel implements Utility_Panel {
                 
                 // Create and save the new account
                 Account newAccount = new Account(
-                    null, // ID will be generated
-                    currentUser.getId(),
+                    currentUser.getId(), // User's ID (likely an int based on context)
                     "electricity", // type
                     provider,
                     accountNumber,
@@ -650,10 +648,9 @@ public class Electricity_Panel implements Utility_Panel {
                 }
                 
                 if (createdAccount != null && initialReading > 0) {
-                    // Create initial reading
+                    // Create initial reading with current date
                     Reading_History initialReadingRecord = new Reading_History(
-                        null, // ID will be generated
-                        createdAccount.getId(),
+                        createdAccount.getId(), // Use the Account ID from the retrieved account
                         LocalDate.now(),
                         initialReading
                     );

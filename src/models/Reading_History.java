@@ -1,16 +1,15 @@
 package models;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class Reading_History {
-    private String id;
-    private String accountId;
+    private int id;
+    private int accountId;
     private LocalDate readingDate;
     private double readingValue;
     
     // Constructor with all fields
-    public Reading_History(String id, String accountId, LocalDate readingDate, double readingValue) {
+    public Reading_History(int id, int accountId, LocalDate readingDate, double readingValue) {
         this.id = id;
         this.accountId = accountId;
         this.readingDate = readingDate;
@@ -18,25 +17,26 @@ public class Reading_History {
     }
     
     // Constructor without ID (for new readings)
-    public Reading_History(String accountId, LocalDate readingDate, double readingValue) {
-        this.id = UUID.randomUUID().toString();
+    public Reading_History(int accountId, LocalDate readingDate, double readingValue) {
+        this.id = -1; // Will be set by database
         this.accountId = accountId;
         this.readingDate = readingDate;
         this.readingValue = readingValue;
     }
     
     // Constructor with current date
-    public Reading_History(String accountId, double readingValue) {
-        this.id = UUID.randomUUID().toString();
+    public Reading_History(int accountId, double readingValue) {
+        this.id = -1; // Will be set by database
         this.accountId = accountId;
         this.readingDate = LocalDate.now();
         this.readingValue = readingValue;
     }
     
     // Getters
-    public String getId() { return id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     
-    public String getAccountId() { return accountId; }
+    public int getAccountId() { return accountId; }
     
     public LocalDate getReadingDate() { return readingDate; }
     public void setReadingDate(LocalDate readingDate) { this.readingDate = readingDate; }

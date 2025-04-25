@@ -59,6 +59,7 @@ public class User_Manager {
 
         return false;
     }
+    
 
     public boolean updateUserPassword(String username, String newPassword) {
         String sql = "UPDATE users SET password = ? WHERE username = ?";

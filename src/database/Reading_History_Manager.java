@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 import models.Reading_History;
+import models.Bill;
 
 public class Reading_History_Manager {
     private final Connection conn;
@@ -14,25 +15,31 @@ public class Reading_History_Manager {
     }
 
     public void createReading(Reading_History reading) throws SQLException {
-        String sql = "INSERT INTO reading_history(id,account_id,reading_date,reading_value) VALUES(?,?,?,?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, reading.getId() != null ? reading.getId() : UUID.randomUUID().toString());
-            ps.setString(2, reading.getAccountId());
-            ps.setString(3, reading.getReadingDate().toString());
-            ps.setDouble(4, reading.getReadingValue());
+        String sql = "INSERT INTO reading_history(account_id,reading_date,reading_value) VALUES(?,?,?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, reading.getAccountId());
+            ps.setString(2, reading.getReadingDate().toString());
+            ps.setDouble(3, reading.getReadingValue());
             ps.executeUpdate();
+            
+            // Get the generated ID
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    reading.setId(rs.getInt(1));
+                }
+            }
         }
     }
 
-    public Reading_History getReadingById(String id) throws SQLException {
+    public Reading_History getReadingById(int id) throws SQLException {
         String sql = "SELECT * FROM reading_history WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Reading_History(
-                        rs.getString("id"),
-                        rs.getString("account_id"),
+                        rs.getInt("id"),
+                        rs.getInt("account_id"),
                         LocalDate.parse(rs.getString("reading_date")),
                         rs.getDouble("reading_value")
                     );
@@ -42,16 +49,16 @@ public class Reading_History_Manager {
         }
     }
 
-    public List<Reading_History> getReadingsByAccountId(String accountId) throws SQLException {
+    public List<Reading_History> getReadingsByAccountId(int accountId) throws SQLException {
         String sql = "SELECT * FROM reading_history WHERE account_id = ? ORDER BY reading_date ASC";
         List<Reading_History> list = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, accountId);
+            ps.setInt(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Reading_History(
-                        rs.getString("id"),
-                        rs.getString("account_id"),
+                        rs.getInt("id"),
+                        rs.getInt("account_id"),
                         LocalDate.parse(rs.getString("reading_date")),
                         rs.getDouble("reading_value")
                     ));
@@ -61,18 +68,18 @@ public class Reading_History_Manager {
         return list;
     }
     
-    public List<Reading_History> getReadingsByAccountIdAndDateRange(String accountId, LocalDate startDate, LocalDate endDate) throws SQLException {
+    public List<Reading_History> getReadingsByAccountIdAndDateRange(int accountId, LocalDate startDate, LocalDate endDate) throws SQLException {
         String sql = "SELECT * FROM reading_history WHERE account_id = ? AND reading_date >= ? AND reading_date <= ? ORDER BY reading_date ASC";
         List<Reading_History> list = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, accountId);
+            ps.setInt(1, accountId);
             ps.setString(2, startDate.toString());
             ps.setString(3, endDate.toString());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Reading_History(
-                        rs.getString("id"),
-                        rs.getString("account_id"),
+                        rs.getInt("id"),
+                        rs.getInt("account_id"),
                         LocalDate.parse(rs.getString("reading_date")),
                         rs.getDouble("reading_value")
                     ));
@@ -82,15 +89,15 @@ public class Reading_History_Manager {
         return list;
     }
 
-    public Reading_History getLatestReadingByAccountId(String accountId) throws SQLException {
+    public Reading_History getLatestReadingByAccountId(int accountId) throws SQLException {
         String sql = "SELECT * FROM reading_history WHERE account_id = ? ORDER BY reading_date DESC LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, accountId);
+            ps.setInt(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Reading_History(
-                        rs.getString("id"),
-                        rs.getString("account_id"),
+                        rs.getInt("id"),
+                        rs.getInt("account_id"),
                         LocalDate.parse(rs.getString("reading_date")),
                         rs.getDouble("reading_value")
                     );
@@ -100,16 +107,16 @@ public class Reading_History_Manager {
         }
     }
     
-    public Reading_History getPreviousReading(String accountId, LocalDate beforeDate) throws SQLException {
+    public Reading_History getPreviousReading(int accountId, LocalDate beforeDate) throws SQLException {
         String sql = "SELECT * FROM reading_history WHERE account_id = ? AND reading_date < ? ORDER BY reading_date DESC LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, accountId);
+            ps.setInt(1, accountId);
             ps.setString(2, beforeDate.toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Reading_History(
-                        rs.getString("id"),
-                        rs.getString("account_id"),
+                        rs.getInt("id"),
+                        rs.getInt("account_id"),
                         LocalDate.parse(rs.getString("reading_date")),
                         rs.getDouble("reading_value")
                     );
@@ -124,21 +131,21 @@ public class Reading_History_Manager {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, reading.getReadingDate().toString());
             ps.setDouble(2, reading.getReadingValue());
-            ps.setString(3, reading.getId());
+            ps.setInt(3, reading.getId());
             ps.executeUpdate();
         }
     }
 
-    public void deleteReading(String id) throws SQLException {
+    public void deleteReading(int id) throws SQLException {
         String sql = "DELETE FROM reading_history WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setInt(1, id);
             ps.executeUpdate();
         }
     }
     
     // Generate a bill based on the latest and previous readings
-    public models.Bill generateBillFromReadings(String accountId, double ratePerUnit, LocalDate dueDate) throws SQLException {
+    public Bill generateBillFromReadings(int accountId, double ratePerUnit, LocalDate dueDate) throws SQLException {
         Reading_History latestReading = getLatestReadingByAccountId(accountId);
         if (latestReading == null) {
             return null; // No readings available
@@ -153,7 +160,7 @@ public class Reading_History_Manager {
         double amount = consumption * ratePerUnit;
         
         // Create a new bill
-        return new models.Bill(
+        return new Bill(
             accountId,
             startReading,
             endReading,
@@ -164,7 +171,7 @@ public class Reading_History_Manager {
     }
     
     // Get statistics for an account
-    public Map<String, Double> getAccountStatistics(String accountId) throws SQLException {
+    public Map<String, Double> getAccountStatistics(int accountId) throws SQLException {
         Map<String, Double> stats = new HashMap<>();
         List<Reading_History> readings = getReadingsByAccountId(accountId);
         

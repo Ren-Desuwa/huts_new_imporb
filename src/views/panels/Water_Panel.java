@@ -181,7 +181,7 @@ public class Water_Panel implements Utility_Panel {
         statsGbc.gridy = 0;
         totalsPanel.add(totalLabel, statsGbc);
         
-        totalSpentField = new JTextField("$0.00");
+        totalSpentField = new JTextField("₱0.00");
         totalSpentField.setEditable(false);
         statsGbc.gridx = 0;
         statsGbc.gridy = 1;
@@ -193,7 +193,7 @@ public class Water_Panel implements Utility_Panel {
         statsGbc.gridy = 2;
         totalsPanel.add(avgLabel, statsGbc);
         
-        avgMonthlyField = new JTextField("$0.00");
+        avgMonthlyField = new JTextField("₱0.00");
         avgMonthlyField.setEditable(false);
         statsGbc.gridx = 0;
         statsGbc.gridy = 3;
@@ -272,7 +272,7 @@ public class Water_Panel implements Utility_Panel {
                     String status = bill.isPaid() ? "Paid" : "Unpaid";
                     Object[] row = {
                         bill.getIssueDate().toString(),
-                        String.format("$%.2f", bill.getAmount()),
+                        String.format("₱%.2f", bill.getAmount()),
                         String.format("%.2f", bill.getStartReading()),
                         String.format("%.2f", bill.getEndReading()),
                         String.format("%.2f", bill.getConsumption()),
@@ -336,6 +336,8 @@ public class Water_Panel implements Utility_Panel {
     }
     
     // Method to add a new water reading
+ // Method to add a new water reading
+ // Method to add a new water reading
     private void addWaterReading(int selectedAccountIndex) {
         // Check if user is logged in
         if (currentUser == null) {
@@ -369,9 +371,8 @@ public class Water_Panel implements Utility_Panel {
             // Get the selected account
             Account selectedAccount = waterAccounts.get(selectedAccountIndex);
             
-            // Create and save the new reading
+            // Create and save the new reading - use constructor without ID parameter
             Reading_History newReading = new Reading_History(
-                null, // ID will be generated
                 selectedAccount.getId(),
                 readingDate,
                 readingValue
@@ -405,7 +406,7 @@ public class Water_Panel implements Utility_Panel {
             ex.printStackTrace();
         }
     }
-    
+
     // Method to generate a bill from the latest readings
     private void generateWaterBill(int selectedAccountIndex) {
         // Check if user is logged in
@@ -488,19 +489,14 @@ public class Water_Panel implements Utility_Panel {
                     LocalDate dueDate = LocalDate.parse(dueDateField.getText());
                     String notes = notesField.getText();
                     
-                    // Create a new bill
+                    // Create a new bill - use the full constructor and let UUID generation happen inside
                     Bill newBill = new Bill(
-                        null, // ID will be generated
                         selectedAccount.getId(),
                         startReading,
                         endReading,
-                        consumption,
                         amount,
                         issueDate,
-                        dueDate,
-                        false, // not paid yet
-                        null, // no paid date
-                        notes
+                        dueDate
                     );
                     
                     // Save the bill
@@ -540,24 +536,7 @@ public class Water_Panel implements Utility_Panel {
             ex.printStackTrace();
         }
     }
-    
-    // Method to update statistics
-    private void updateStatistics() {
-        double totalSpent = 0.0;
-        int billCount = 0;
-        
-        // Calculate total spent and average bill
-        for (Bill bill : waterBills) {
-            totalSpent += bill.getAmount();
-            billCount++;
-        }
-        
-        // Update statistics fields
-        totalSpentField.setText(String.format("$%.2f", totalSpent));
-        avgMonthlyField.setText(String.format("$%.2f", 
-            billCount > 0 ? totalSpent / billCount : 0));
-    }
-    
+
     // Method to add a new water account
     private void addWaterAccount() {
         // Check if user is logged in
@@ -585,7 +564,7 @@ public class Water_Panel implements Utility_Panel {
         JTextField accountNumberField = new JTextField(20);
         formPanel.add(accountNumberField);
         
-        formPanel.add(new JLabel("Rate per kL ($):"));
+        formPanel.add(new JLabel("Rate per kL (₱):"));
         JTextField rateField = new JTextField(20);
         formPanel.add(rateField);
         
@@ -612,10 +591,10 @@ public class Water_Panel implements Utility_Panel {
                     return;
                 }
                 
-                // Create and save the new account
+                // Create and save the new account with UUID
+
                 Account newAccount = new Account(
-                    null, // ID will be generated
-                    currentUser.getId(),
+                    currentUser.getId(), // Convert int to String
                     "water", // type
                     provider,
                     accountNumber,
@@ -624,21 +603,10 @@ public class Water_Panel implements Utility_Panel {
                 
                 dbManager.getAccountManager().createAccount(newAccount);
                 
-                // Get the created account to get its ID
-                List<Account> accounts = dbManager.getAccountManager().getAccountsByUserId(currentUser.getId());
-                Account createdAccount = null;
-                for (Account acc : accounts) {
-                    if (acc.getAccountNumber().equals(accountNumber) && acc.getType().equals("water")) {
-                        createdAccount = acc;
-                        break;
-                    }
-                }
-                
-                if (createdAccount != null && initialReading > 0) {
-                    // Create initial reading
+                if (initialReading > 0) {
+                    // Create initial reading using the account ID we just generated
                     Reading_History initialReadingRecord = new Reading_History(
-                        null, // ID will be generated
-                        createdAccount.getId(),
+                    	newAccount.getUserId(),
                         LocalDate.now(),
                         initialReading
                     );
@@ -671,6 +639,23 @@ public class Water_Panel implements Utility_Panel {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         
         dialog.setVisible(true);
+    }
+    
+    // Method to update statistics
+    private void updateStatistics() {
+        double totalSpent = 0.0;
+        int billCount = 0;
+        
+        // Calculate total spent and average bill
+        for (Bill bill : waterBills) {
+            totalSpent += bill.getAmount();
+            billCount++;
+        }
+        
+        // Update statistics fields
+        totalSpentField.setText(String.format("₱%.2f", totalSpent));
+        avgMonthlyField.setText(String.format("₱%.2f", 
+            billCount > 0 ? totalSpent / billCount : 0));
     }
     
     // Method to update the current user

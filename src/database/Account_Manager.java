@@ -4,7 +4,6 @@ import java.sql.*;
 import java.util.*;
 
 import models.Account;
-import models.Bill;
 
 public class Account_Manager {
     private final Connection conn;
@@ -14,15 +13,21 @@ public class Account_Manager {
     }
 
     public void createAccount(Account account) throws SQLException {
-        String sql = "INSERT INTO accounts(id,user_id,type,provider,account_number,rate_per_unit) VALUES(?,?,?,?,?,?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, account.getId() != null ? account.getId() : UUID.randomUUID().toString());
-            ps.setString(2, account.getUserId());
-            ps.setString(3, account.getType());
-            ps.setString(4, account.getProvider());
-            ps.setString(5, account.getAccountNumber());
-            ps.setDouble(6, account.getRatePerUnit());
+        String sql = "INSERT INTO accounts(user_id,type,provider,account_number,rate_per_unit) VALUES(?,?,?,?,?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, account.getUserId());
+            ps.setString(2, account.getType());
+            ps.setString(3, account.getProvider());
+            ps.setString(4, account.getAccountNumber());
+            ps.setDouble(5, account.getRatePerUnit());
             ps.executeUpdate();
+            
+            // Get the generated ID
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    account.setId(rs.getInt(1));
+                }
+            }
         }
     }
 
@@ -33,8 +38,8 @@ public class Account_Manager {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Account(
-                        rs.getString("id"),
-                        rs.getString("user_id"),
+                        rs.getInt("id"),
+                        rs.getInt("user_id"),
                         rs.getString("type"),
                         rs.getString("provider"),
                         rs.getString("account_number"),
@@ -46,16 +51,16 @@ public class Account_Manager {
         }
     }
 
-    public List<Account> getAccountsByUserId(String userId) throws SQLException {
+    public List<Account> getAccountsByUserId(int userId) throws SQLException {
         String sql = "SELECT * FROM accounts WHERE user_id = ?";
         List<Account> list = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, userId);
+            ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Account(
-                        rs.getString("id"),
-                        rs.getString("user_id"),
+                        rs.getInt("id"),
+                        rs.getInt("user_id"),
                         rs.getString("type"),
                         rs.getString("provider"),
                         rs.getString("account_number"),
@@ -73,15 +78,15 @@ public class Account_Manager {
             ps.setString(1, account.getProvider());
             ps.setString(2, account.getAccountNumber());
             ps.setDouble(3, account.getRatePerUnit());
-            ps.setString(4, account.getId());
+            ps.setInt(4, account.getId());
             ps.executeUpdate();
         }
     }
 
-    public void deleteAccount(String id) throws SQLException {
+    public void deleteAccount(int id) throws SQLException {
         String sql = "DELETE FROM accounts WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setInt(1, id);
             ps.executeUpdate();
         }
     }

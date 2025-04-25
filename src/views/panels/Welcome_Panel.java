@@ -194,7 +194,7 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
             }
             
             // Get the current user ID
-            String userId = currentUser.getId();
+            int userId = currentUser.getId();
             
             // Get accounts for the current user
             List<Account> accounts = dbManager.getAccountManager().getAccountsByUserId(userId);

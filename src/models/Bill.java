@@ -1,11 +1,10 @@
 package models;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class Bill {
-    private String id;
-    private String accountId;
+    private int id;
+    private int accountId;
     private double startReading;
     private double endReading;
     private double consumption;
@@ -17,7 +16,7 @@ public class Bill {
     private String notes;
     
     // Constructor with all fields
-    public Bill(String id, String accountId, double startReading, double endReading, 
+    public Bill(int id, int accountId, double startReading, double endReading, 
                 double consumption, double amount, LocalDate issueDate, 
                 LocalDate dueDate, boolean isPaid, LocalDate paidDate, String notes) {
         this.id = id;
@@ -34,9 +33,9 @@ public class Bill {
     }
     
     // Constructor without ID (for new bills)
-    public Bill(String accountId, double startReading, double endReading, 
+    public Bill(int accountId, double startReading, double endReading, 
                 double amount, LocalDate issueDate, LocalDate dueDate) {
-        this.id = UUID.randomUUID().toString();
+        this.id = -1; // Will be set by database
         this.accountId = accountId;
         this.startReading = startReading;
         this.endReading = endReading;
@@ -50,9 +49,10 @@ public class Bill {
     }
     
     // Getters and setters
-    public String getId() { return id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
     
-    public String getAccountId() { return accountId; }
+    public int getAccountId() { return accountId; }
     
     public double getStartReading() { return startReading; }
     public void setStartReading(double startReading) { 

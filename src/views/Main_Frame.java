@@ -8,6 +8,7 @@ import views.panels.Electricity_Panel;
 import views.panels.Profile_Panel;
 import views.panels.Water_Panel;
 import views.panels.Welcome_Panel;
+import views.panels.Chore_Panel;
 
 import javax.swing.*;
 import database.*;
@@ -15,6 +16,7 @@ import database.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+
 
 public class Main_Frame extends JFrame {
     // Maps to store previous readings for bill calculations
@@ -39,6 +41,8 @@ public class Main_Frame extends JFrame {
     private Electricity_Panel electricityPanel;
     private Water_Panel waterPanel;
     private Profile_Panel profilePanel;
+    private Chore_Panel chorePanel;
+    
     
     // Constants for panel names
     private static final String MAIN_CONTENT_PANEL = "MAIN_CONTENT_PANEL";
@@ -48,6 +52,7 @@ public class Main_Frame extends JFrame {
     private static final String WELCOME_PANEL = "welcome";
     private static final String ELECTRICITY_PANEL = "electricity";
     private static final String WATER_PANEL = "water";
+    private static final String CHORE_PANEL = "chore";
     private static final String PROFILE_PANEL = "profile";
     
     // Size constants
@@ -120,12 +125,14 @@ public class Main_Frame extends JFrame {
         welcomePanel = new Welcome_Panel(this, dbManager);
         electricityPanel = new Electricity_Panel(this, currentUser);
         waterPanel = new Water_Panel(this, currentUser);
+        chorePanel = new Chore_Panel(this, currentUser);
         profilePanel = new Profile_Panel(this); // Initialize the profile panel
         
         // Add panels to content area
         contentArea.add(welcomePanel.getPanel(), "WELCOME");
         contentArea.add(electricityPanel.getPanel(), "ELECTRICITY");
         contentArea.add(waterPanel.getPanel(), "WATER");
+        contentArea.add(chorePanel.getPanel(), "CHORE");
         contentArea.add(profilePanel.getPanel(), "PROFILE"); // Add profile panel to content area
         
         // Add components to main panel
@@ -137,6 +144,7 @@ public class Main_Frame extends JFrame {
         JButton dashboardBtn = createMenuButton("Dashboard");
         JButton electricityBtn = createMenuButton("Electricity");
         JButton waterBtn = createMenuButton("Water");
+        JButton choreBtn = createMenuButton("Chores");
         JButton profileBtn = createMenuButton("Profile");  // New Profile button
         JButton logoutBtn = createMenuButton("Logout");
         
@@ -144,6 +152,7 @@ public class Main_Frame extends JFrame {
         dashboardBtn.addActionListener(e -> showWelcomePanel());
         electricityBtn.addActionListener(e -> showElectricityPanel());
         waterBtn.addActionListener(e -> showWaterPanel());
+        choreBtn.addActionListener(e -> showChorePanel());
         profileBtn.addActionListener(e -> showProfilePanel());  // Add listener for profile
         logoutBtn.addActionListener(e -> logout());
         
@@ -156,6 +165,9 @@ public class Main_Frame extends JFrame {
         menuPanel.add(electricityBtn);
         menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(waterBtn);
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        menuPanel.add(choreBtn);
+        
         menuPanel.add(Box.createVerticalGlue());
         menuPanel.add(profileBtn);  // Add Profile button above Logout
         menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));  // Add spacing
@@ -205,6 +217,7 @@ public class Main_Frame extends JFrame {
         if (profilePanel != null) profilePanel.setCurrentUser(user);
         if (electricityPanel != null) electricityPanel.setCurrentUser(user);
         if (waterPanel != null) waterPanel.setCurrentUser(user);
+        if (chorePanel != null) chorePanel.setCurrentUser(user);
         
         // Update other panels similarly if they need user information
     }
@@ -226,6 +239,12 @@ public class Main_Frame extends JFrame {
         CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
         waterPanel.refreshPanel();
         cardLayout.show((JPanel) mainPanel.getComponent(1), "WATER");
+    }
+    
+    private void showChorePanel() {
+        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
+        chorePanel.refreshPanel();
+        cardLayout.show((JPanel) mainPanel.getComponent(1), "CHORE");
     }
     
     private void showProfilePanel() {

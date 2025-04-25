@@ -136,7 +136,7 @@ public class Chore_Panel implements Utility_Panel {
         addChorePanel.add(assignedToField, gbc);
         
         // Priority selection
-        JLabel priorityLabel = new JLabel("Priority (1-5)");
+        JLabel priorityLabel = new JLabel("Priority (1 is the Highest)");
         gbc.gridx = 0;
         gbc.gridy = 6;
         addChorePanel.add(priorityLabel, gbc);
@@ -784,5 +784,10 @@ public class Chore_Panel implements Utility_Panel {
         editDialog.add(formPanel, BorderLayout.CENTER);
         editDialog.add(buttonsPanel, BorderLayout.SOUTH);
         editDialog.setVisible(true);
+    }
+    
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        refreshPanel(); // Refresh to show only the current user's data
     }
 }

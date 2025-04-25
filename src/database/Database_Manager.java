@@ -3,7 +3,6 @@ package database;
 import models.*;
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.UUID;
 
 /**
  * Core Database Manager that initializes the connection and delegates operations
@@ -59,28 +58,28 @@ public class Database_Manager {
 
     private void createTables() {
         try (Statement stmt = connection.createStatement()) {
-            // Users table
+            // Users table - Update to use INTEGER IDs
             stmt.execute("CREATE TABLE IF NOT EXISTS users ("
-                    + "id TEXT PRIMARY KEY, "
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + "username TEXT UNIQUE, "
                     + "password TEXT, "
                     + "email TEXT, "
                     + "full_name TEXT)");
 
-            // Accounts table (linked to users)
+            // Accounts table - Update to use INTEGER IDs
             stmt.execute("CREATE TABLE IF NOT EXISTS accounts ("
-                    + "id TEXT PRIMARY KEY, "
-                    + "user_id TEXT NOT NULL, "
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + "user_id INTEGER NOT NULL, "
                     + "type TEXT NOT NULL, "    // e.g., 'electricity', 'gas', 'water'
                     + "provider TEXT, "
                     + "account_number TEXT, "
                     + "rate_per_unit REAL, "
                     + "FOREIGN KEY(user_id) REFERENCES users(id))");
 
-            // Bills table (linked to accounts)
+            // Bills table - Update to use INTEGER IDs
             stmt.execute("CREATE TABLE IF NOT EXISTS bills ("
-                    + "id TEXT PRIMARY KEY, "
-                    + "account_id TEXT NOT NULL, "
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + "account_id INTEGER NOT NULL, "
                     + "start_reading REAL, "
                     + "end_reading REAL, "
                     + "consumption REAL, "
@@ -92,15 +91,15 @@ public class Database_Manager {
                     + "notes TEXT, "
                     + "FOREIGN KEY(account_id) REFERENCES accounts(id))");
 
-            // Reading history table (linked to accounts)
+            // Reading history table - Update to use INTEGER IDs
             stmt.execute("CREATE TABLE IF NOT EXISTS reading_history ("
-                    + "id TEXT PRIMARY KEY, "
-                    + "account_id TEXT NOT NULL, "
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + "account_id INTEGER NOT NULL, "
                     + "reading_date TEXT, "
                     + "reading_value REAL, "
                     + "FOREIGN KEY(account_id) REFERENCES accounts(id))");
 
-            // Chores table
+            // Chores table (already using INTEGER IDs, no change needed)
             stmt.execute("CREATE TABLE IF NOT EXISTS chores ("
                     + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + "user_id INTEGER NOT NULL, "
@@ -117,7 +116,6 @@ public class Database_Manager {
             e.printStackTrace();
         }
     }
-
 
     // Getters for specialized managers
     public User_Manager getUserManager() {

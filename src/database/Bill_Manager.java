@@ -14,32 +14,38 @@ public class Bill_Manager {
     }
 
     public void createBill(Bill bill) throws SQLException {
-        String sql = "INSERT INTO bills(id,account_id,start_reading,end_reading,consumption,amount,issue_date,due_date,is_paid,paid_date,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, bill.getId() != null ? bill.getId() : UUID.randomUUID().toString());
-            ps.setString(2, bill.getAccountId());
-            ps.setDouble(3, bill.getStartReading());
-            ps.setDouble(4, bill.getEndReading());
-            ps.setDouble(5, bill.getConsumption());
-            ps.setDouble(6, bill.getAmount());
-            ps.setString(7, bill.getIssueDate().toString());
-            ps.setString(8, bill.getDueDate().toString());
-            ps.setInt(9, bill.isPaid() ? 1 : 0);
-            ps.setString(10, bill.getPaidDate() != null ? bill.getPaidDate().toString() : null);
-            ps.setString(11, bill.getNotes());
+        String sql = "INSERT INTO bills(account_id,start_reading,end_reading,consumption,amount,issue_date,due_date,is_paid,paid_date,notes) VALUES(?,?,?,?,?,?,?,?,?,?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, bill.getAccountId());
+            ps.setDouble(2, bill.getStartReading());
+            ps.setDouble(3, bill.getEndReading());
+            ps.setDouble(4, bill.getConsumption());
+            ps.setDouble(5, bill.getAmount());
+            ps.setString(6, bill.getIssueDate().toString());
+            ps.setString(7, bill.getDueDate().toString());
+            ps.setInt(8, bill.isPaid() ? 1 : 0);
+            ps.setString(9, bill.getPaidDate() != null ? bill.getPaidDate().toString() : null);
+            ps.setString(10, bill.getNotes());
             ps.executeUpdate();
+            
+            // Get the generated ID
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    bill.setId(rs.getInt(1));
+                }
+            }
         }
     }
 
-    public Bill getBillById(String id) throws SQLException {
+    public Bill getBillById(int id) throws SQLException {
         String sql = "SELECT * FROM bills WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Bill(
-                        rs.getString("id"),
-                        rs.getString("account_id"),
+                        rs.getInt("id"),
+                        rs.getInt("account_id"),
                         rs.getDouble("start_reading"),
                         rs.getDouble("end_reading"),
                         rs.getDouble("consumption"),
@@ -56,16 +62,16 @@ public class Bill_Manager {
         }
     }
 
-    public List<Bill> getBillsByAccountId(String accountId) throws SQLException {
+    public List<Bill> getBillsByAccountId(int accountId) throws SQLException {
         String sql = "SELECT * FROM bills WHERE account_id = ?";
         List<Bill> list = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, accountId);
+            ps.setInt(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Bill(
-                        rs.getString("id"),
-                        rs.getString("account_id"),
+                        rs.getInt("id"),
+                        rs.getInt("account_id"),
                         rs.getDouble("start_reading"),
                         rs.getDouble("end_reading"),
                         rs.getDouble("consumption"),
@@ -91,15 +97,15 @@ public class Bill_Manager {
             ps.setInt(4, bill.isPaid() ? 1 : 0);
             ps.setString(5, bill.getPaidDate() != null ? bill.getPaidDate().toString() : null);
             ps.setString(6, bill.getNotes());
-            ps.setString(7, bill.getId());
+            ps.setInt(7, bill.getId());
             ps.executeUpdate();
         }
     }
 
-    public void deleteBill(String id) throws SQLException {
+    public void deleteBill(int id) throws SQLException {
         String sql = "DELETE FROM bills WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setInt(1, id);
             ps.executeUpdate();
         }
     }

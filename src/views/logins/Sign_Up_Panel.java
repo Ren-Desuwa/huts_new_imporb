@@ -337,8 +337,7 @@ public class Sign_Up_Panel extends JPanel {
             }
             
             // Generate a UUID for the user
-            String userId = userManager.generateNextUserId();
-            User newUser = new User(userId, username, password, email, fullName);
+            User newUser = new User(0, username, password, email, fullName);
             
             // Use User_Manager to add the user
             boolean success = userManager.addUser(newUser);
