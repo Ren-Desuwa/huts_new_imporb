@@ -378,6 +378,9 @@ public class Main_Frame extends JFrame {
                 case WATER_PANEL:
                     cardLayout.show(contentArea, "WATER");
                     break;
+                case CHORE_PANEL:
+                    cardLayout.show(contentArea, "CHORE");
+                    break;
                 case PROFILE_PANEL:
                     cardLayout.show(contentArea, "PROFILE");
                     break;
@@ -408,6 +411,9 @@ public class Main_Frame extends JFrame {
                 break;
             case WATER_PANEL:
                 waterPanel.refreshPanel();
+                break;
+            case CHORE_PANEL:
+                chorePanel.refreshPanel();
                 break;
             case PROFILE_PANEL:
                 profilePanel.refreshPanel();
