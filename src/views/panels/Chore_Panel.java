@@ -341,8 +341,11 @@ public class Chore_Panel implements Utility_Panel {
             }
             
             LocalDate dueDate = null;
-            if (!dueDateStr.isEmpty()) {
+            try {
                 dueDate = LocalDate.parse(dueDateStr);
+            } catch (DateTimeParseException e) {
+                // Handle parse exception or log error
+                System.err.println("Error parsing date: " + dueDateStr);
             }
             
             Chore newChore = new Chore(
@@ -558,8 +561,8 @@ public class Chore_Panel implements Utility_Panel {
         // Show the popup
         Point p = choreTable.getLocationOnScreen();
         int rowHeight = choreTable.getRowHeight(row);
-        popupMenu.show(null, p.x + choreTable.getWidth() - 100, 
-            p.y + choreTable.getCellRect(row, 0, true).y + rowHeight);
+        popupMenu.show(choreTable, choreTable.getWidth() - 100, 
+        	    choreTable.getCellRect(row, 0, true).y + rowHeight);
     }
     
     // Mark a chore as completed
@@ -731,12 +734,15 @@ public class Chore_Panel implements Utility_Panel {
                 chore.setDescription(descArea.getText());
                 
                 String dueDateStr = dueDateField.getText();
-                if (!dueDateStr.isEmpty()) {
-                    chore.setDueDate(LocalDate.parse(dueDateStr));
-                } else {
-                    chore.setDueDate(null);
+                try {
+                    if (!dueDateStr.isEmpty()) {
+                        chore.setDueDate(LocalDate.parse(dueDateStr));
+                    } else {
+                        chore.setDueDate(null);
+                    }
+                } catch (DateTimeParseException e2) {
+                	System.err.println("Error parsing date: " + dueDateStr);
                 }
-                
                 chore.setFrequency((String) freqCombo.getSelectedItem());
                 chore.setAssignedTo(assignedField.getText());
                 chore.setPriority((Integer) priorityCombo.getSelectedItem());

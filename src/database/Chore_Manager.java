@@ -3,6 +3,7 @@ package database;
 import models.Chore;
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -217,6 +218,7 @@ public class Chore_Manager {
         String description = rs.getString("description");
         
         LocalDate dueDate = null;
+
         if (rs.getDate("due_date") != null) {
             dueDate = rs.getDate("due_date").toLocalDate();
         }
